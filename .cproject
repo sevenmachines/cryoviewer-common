@@ -34,6 +34,7 @@
 								<option id="gnu.cpp.compiler.option.other.other.1660222407" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-fPIC -std=c++0x -c -fmessage-length=0 `pkg-config --cflags gtk+-2.0 gtkglextmm-1.2 gtkmm-2.4 openscenegraph`" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1239034084" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/cryomesh/src}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/gtkmm-2.4"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/cryomesh-common/src}&quot;"/>
 								</option>
@@ -689,6 +690,7 @@
 								<option id="gnu.cpp.compiler.so.release.option.debugging.level.1293114123" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.761590862" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/cryomesh/src}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/gtkmm-2.4/"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/cryomesh-common/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.1863611498" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-fPIC -std=c++0x -c -fmessage-length=0 `pkg-config --cflags gtk+-2.0 gtkglextmm-1.2 gtkmm-2.4 openscenegraph`" valueType="string"/>

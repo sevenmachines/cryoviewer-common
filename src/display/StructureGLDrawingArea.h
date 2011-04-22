@@ -14,8 +14,12 @@
 #include "structures/Cluster.h"
 #include "structures/Fibre.h"
 #include "spacial/Point.h"
+#include "common/SimpleGLDrawingArea.h"
 
-#include <gtkmm/gl/drawingarea.h>
+#include <gtkmm/box.h>
+
+using namespace cryomesh::structures;
+using namespace cryomesh::components;
 
 namespace cryo {
 
@@ -23,14 +27,14 @@ namespace viewer {
 
 namespace display {
 
-class StructureGLDrawingArea: public Gtk::GL::DrawingArea {
+class StructureGLDrawingArea: public Gtk::VBox {
 public:
 
 	/**
 	 * Enum representing drawmode
 	 */
 	enum DrawMode {
-		DRAW_BUNDLE, DRAW_CLUSTER, DRAW_TEST
+		DRAW_BUNDLE, DRAW_CLUSTER, DRAW_TEST, DRAW_NODE
 	};
 
 	StructureGLDrawingArea(const boost::shared_ptr<cryomesh::structures::Bundle> bun);
@@ -39,18 +43,13 @@ public:
 	virtual void update();
 	virtual void setDrawBundle();
 	virtual void setDrawTest();
-	virtual void setDrawCluster(const boost::uuids::uuid & key);
+	virtual void setDrawCluster();
+	virtual void setDrawNode();
+	virtual void setCurrentBundle(boost::shared_ptr<const Bundle> bun);
+	virtual void setCurrentCluster(boost::shared_ptr<const Cluster> clus);
+	virtual void setCurrentNode(boost::shared_ptr<const Node> node);
 
 protected:
-	virtual void on_realize();
-	virtual bool on_configure_event(GdkEventConfigure* event);
-	virtual bool on_expose_event(GdkEventExpose* event);
-
-	// Signal handlers:
-	virtual bool on_button_press_event(GdkEventButton* event);
-	virtual bool on_button_release_event(GdkEventButton* event);
-	virtual bool on_motion_notify_event(GdkEventMotion* event);
-
 	virtual void initialise();
 
 	virtual void setDrawMode(const DrawMode mode);
@@ -58,50 +57,22 @@ protected:
 	virtual void clear();
 	virtual void drawBundle();
 	virtual void drawCluster();
-
-	virtual void drawClusters();
-	virtual void drawFibres();
-	virtual void drawConnections();
-	virtual void drawNodes();
-
-	virtual void drawMappedPoints(const std::map<boost::uuids::uuid, cryomesh::spacial::Point> & map);
-	virtual void drawMappedJoins(
-			const std::map<boost::uuids::uuid, std::pair<boost::uuids::uuid, boost::uuids::uuid> > & map,
-			const std::map<boost::uuids::uuid, cryomesh::spacial::Point> & pointmap);
-	virtual void drawSphere(const cryomesh::spacial::Point & centre, double radius = 1);
-	virtual void drawLine(const cryomesh::spacial::Point & start, const cryomesh::spacial::Point & end,
-			double thickness = 1);
-
+	virtual void drawNode();
 	virtual void drawTest();
 
 	virtual void invalidate();
-	virtual boost::uuids::uuid doPick() const;
 
-	const boost::shared_ptr<cryomesh::structures::Bundle> bundle;
-	boost::shared_ptr<const cryomesh::structures::Cluster> currentCluster;
+	boost::shared_ptr<const Bundle> currentBundle;
+	boost::shared_ptr<const Cluster> currentCluster;
+	boost::shared_ptr<const Node> currentNode;
 
 	DrawMode drawMode;
 	boost::uuids::uuid drawUUID;
 
-	/**
-	 * Map of cluster uuid to point in space
-	 */
-	std::map<boost::uuids::uuid, cryomesh::spacial::Point> clusterSpacialMap;
-
-	/**
-	 * Map of fibre uuid to a pair of input and output cluster uuids
-	 */
-	std::map<boost::uuids::uuid, std::pair<boost::uuids::uuid, boost::uuids::uuid> > fibreSpacialMap;
-
-	/**
-	 * Map of node uuid to point in space
-	 */
-	std::map<boost::uuids::uuid, cryomesh::spacial::Point> nodeSpacialMap;
-
-	/**
-	 * Map of connection uuid to a pair of input and output node uuids
-	 */
-	std::map<boost::uuids::uuid, std::pair<boost::uuids::uuid, boost::uuids::uuid> > connectionSpacialMap;
+	boost::shared_ptr<common::SimpleGLDrawingArea> bundleDrawingArea;
+	boost::shared_ptr<common::SimpleGLDrawingArea> clusterDrawingArea;
+	boost::shared_ptr<common::SimpleGLDrawingArea> nodeDrawingArea;
+	boost::shared_ptr<common::SimpleGLDrawingArea> testDrawingArea;
 
 };
 

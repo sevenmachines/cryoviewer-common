@@ -6,6 +6,11 @@
  */
 
 #include "StructureGLDrawingArea.h"
+#include "common/SimpleGLShape.h"
+#include "structures/Cluster.h"
+#include "structures/Fibre.h"
+#include "components/Node.h"
+#include "spacial/Point.h"
 
 #include <GL/gl.h>
 
@@ -18,26 +23,21 @@ namespace display {
 
 using namespace cryomesh::components;
 using namespace cryomesh::structures;
+using namespace cryomesh::common;
+using namespace cryo::viewer::common;
+
+using namespace cryomesh::spacial;
 using namespace cryomesh;
 
 StructureGLDrawingArea::StructureGLDrawingArea(const boost::shared_ptr<cryomesh::structures::Bundle> bun) :
-	bundle(bun), drawMode(DRAW_TEST) {
-	this->setDrawBundle();
-	// Configure OpenGL-capable visual.
-	Glib::RefPtr<Gdk::GL::Config> glconfig;
-	// Try double-buffered visual
-	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH | Gdk::GL::MODE_DOUBLE);
-	if (!glconfig) {
-		std::cerr << "*** Cannot find the double-buffered visual.\n" << "*** Trying single-buffered visual.\n";
+	currentBundle(bun), drawMode(DRAW_TEST), bundleDrawingArea(new common::SimpleGLDrawingArea),
+			clusterDrawingArea(new common::SimpleGLDrawingArea), nodeDrawingArea(new common::SimpleGLDrawingArea),
+			testDrawingArea(new common::SimpleGLDrawingArea) {
 
-		// Try single-buffered visual
-		glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH);
-		if (!glconfig) {
-			std::cerr << "*** Cannot find any OpenGL-capable visual.\n";
-			std::exit(1);
-		}
-	}
-	this->set_gl_capability(glconfig);
+	this->pack_start(*bundleDrawingArea);
+	this->pack_start(*clusterDrawingArea);
+	this->pack_start(*nodeDrawingArea);
+	this->setDrawBundle();
 	this->initialise();
 	this->show();
 }
@@ -48,62 +48,64 @@ StructureGLDrawingArea::~StructureGLDrawingArea() {
 
 void StructureGLDrawingArea::update() {
 	if (drawMode == DrawMode::DRAW_BUNDLE) {
-		if (bundle != 0) {
-			// get clusters representation
+		if (currentBundle != 0) {
+			// get all clusters
 			{
-				clusterSpacialMap.clear();
+				const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> > & all_clusters =
+						currentBundle->getClusters().getCollection();
 
-				const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> > & all_objs =
-						bundle->getClusters().getCollection();
-				// forall in all_objs
+				bundleDrawingArea->clear();
+				// forall in all_clusters
 				{
-					std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> >::const_iterator it_all_objs =
-							all_objs.begin();
-					const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> >::const_iterator it_all_objs_end =
-							all_objs.end();
-					while (it_all_objs != it_all_objs_end) {
-						clusterSpacialMap[it_all_objs->first] = it_all_objs->second->getPosition();
-						++it_all_objs;
+					std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> >::const_iterator it_all_clusters =
+							all_clusters.begin();
+					const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> >::const_iterator
+							it_all_clusters_end = all_clusters.end();
+					while (it_all_clusters != it_all_clusters_end) {
+						Point centre = it_all_clusters->second->getPosition();
+						Point radius(centre.getX() + 1, centre.getY(), centre.getZ());
+						std::vector<Point> points;
+						points .push_back(centre);
+						points .push_back(radius);
+						boost::shared_ptr<common::SimpleGLShape> temp_shape(
+								new common::SimpleGLShape(common::SimpleGLShape::SPHERE, points));
+						bundleDrawingArea->add(temp_shape);
+						++it_all_clusters;
 					}
 				}
 			}
-			// get fibres representation
 
+			// TODO get all fibres
+			{
+
+			}
 		} else {
 			std::cout << "StructureGLDrawingArea::update: " << "ERROR: Not updating null bundle." << std::endl;
 		}
 
 	} else if (drawMode == DrawMode::DRAW_CLUSTER) {
 		if (currentCluster != 0) {
-			nodeSpacialMap.clear();
-			connectionSpacialMap.clear();
-			// get nodes representation
-			const std::map<boost::uuids::uuid, boost::shared_ptr<Node> > & all_nodes = currentCluster->getNodes();
-			// forall in all_nodes
+			// get nodes
 			{
-				std::map<boost::uuids::uuid, boost::shared_ptr<Node> >::const_iterator it_all_nodes = all_nodes.begin();
-				const std::map<boost::uuids::uuid, boost::shared_ptr<Node> >::const_iterator it_all_nodes_end =
-						all_nodes.end();
-				while (it_all_nodes != it_all_nodes_end) {
-					nodeSpacialMap[it_all_nodes->first] = it_all_nodes->second->getPosition();
-					++it_all_nodes;
-				}
-			}
-			// get connections representation
-			const std::map<boost::uuids::uuid, boost::shared_ptr<Connection> > & all_connections =
-					currentCluster->getConnections();
-			// forall in all_connections
-			{
-				std::map<boost::uuids::uuid, boost::shared_ptr<Connection> >::const_iterator it_all_connections =
-						all_connections.begin();
-				const std::map<boost::uuids::uuid, boost::shared_ptr<Connection> >::const_iterator
-						it_all_connections_end = all_connections.end();
-				while (it_all_connections != it_all_connections_end) {
-					boost::uuids::uuid inid = it_all_connections->second->getConnector().getInputs().begin()->first;
-					boost::uuids::uuid outid = it_all_connections->second->getConnector().getOutputs().begin()->first;
-					std::pair<boost::uuids::uuid, boost::uuids::uuid> conpair(inid, outid);
-					connectionSpacialMap[it_all_connections->first] = conpair;
-					++it_all_connections;
+				nodeDrawingArea->clear();
+				const std::map<boost::uuids::uuid, boost::shared_ptr<Node> > & all_nodes = currentCluster->getNodes();
+				// forall in all_nodes
+				{
+					std::map<boost::uuids::uuid, boost::shared_ptr<Node> >::const_iterator it_all_nodes =
+							all_nodes.begin();
+					const std::map<boost::uuids::uuid, boost::shared_ptr<Node> >::const_iterator it_all_nodes_end =
+							all_nodes.end();
+					while (it_all_nodes != it_all_nodes_end) {
+						Point centre = it_all_nodes->second->getPosition();
+						Point radius(centre.getX() + 1, centre.getY(), centre.getZ());
+						std::vector<Point> points;
+						points .push_back(centre);
+						points .push_back(radius);
+						boost::shared_ptr<common::SimpleGLShape> temp_shape(
+								new common::SimpleGLShape(common::SimpleGLShape::SPHERE, points));
+						nodeDrawingArea->add(temp_shape);
+						++it_all_nodes;
+					}
 				}
 			}
 		} else {
@@ -125,185 +127,48 @@ void StructureGLDrawingArea::initialise() {
 
 }
 
-void StructureGLDrawingArea::on_realize() {
-	std::cout << "StructureGLDrawingArea::on_realize: " << "" << std::endl;
-	Gtk::GL::DrawingArea::on_realize();
-	// Get GL::Window.
-	Glib::RefPtr<Gdk::GL::Window> glwindow = get_gl_window();
-	// Do opengl in here
-	// *** OpenGL BEGIN ***
-	bool got_window = glwindow->gl_begin(get_gl_context());
-	if (got_window == false) {
-		std::cout << "StructureGLDrawingArea::on_realize: " << "ERROR: Could not acquire gl window" << std::endl;
-		return;
-	} else {
-		std::cout << "StructureGLDrawingArea::on_realize: " << "DEBUG: Start drawing" << std::endl;
-
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // This Will Clear The Background Color To Black
-		glClearDepth(1.0); // Enables Clearing Of The Depth Buffer
-		glDepthFunc(GL_LESS); // The Type Of Depth Test To Do
-		glEnable(GL_DEPTH_TEST); // Enables Depth Testing
-		glShadeModel(GL_SMOOTH); // Enables Smooth Color Shading
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity(); // Reset The Projection Matrix
-
-	//	gluPerspective(45.0f, (GLfloat) get_width() / (GLfloat) get_height(), 0.1f, 100.0f); // Calculate The Aspect Ratio Of The Window
-
-		glMatrixMode(GL_MODELVIEW);
-		/*
-		 static GLfloat light_diffuse[] = { 1.0, 0.0, 0.0, 1.0 };
-		 static GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
-		 glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-		 glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-		 glEnable(GL_LIGHTING);
-		 glEnable(GL_LIGHT0);
-		 glEnable(GL_DEPTH_TEST);
-
-		 glClearColor(1.0, 1.0, 1.0, 1.0);
-		 glClearDepth(1.0);
-
-		 glViewport(0, 0, get_width(), get_height());
-
-		 glMatrixMode(GL_PROJECTION);
-		 glLoadIdentity();
-		 gluPerspective(40.0, 1.0, 1.0, 10.0);
-
-		 glMatrixMode(GL_MODELVIEW);
-		 glLoadIdentity();
-		 gluLookAt(0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-		 glTranslatef(0.0, 0.0, -100.0);
-		 */
-		glwindow->gl_end();
-	}
-}
-
-bool StructureGLDrawingArea::on_configure_event(GdkEventConfigure* event) {
-	std::cout << "StructureGLDrawingArea::on_configure_event: " << "" << std::endl;
-	Glib::RefPtr<Gdk::GL::Window> glwindow = get_gl_window();
-	//glViewport(0,0,this->get_width(), this->get_height());
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	if (!glwindow->gl_begin(get_gl_context()))
-		return false;
-
-	glViewport(0, 0, get_width(), get_height());
-
-	glwindow->gl_end();
-
-	return true;
-}
-
-bool StructureGLDrawingArea::on_expose_event(GdkEventExpose* event) {
-	std::cout << "StructureGLDrawingArea::on_expose_event: " << "" << std::endl;
-	// Get GL::Window.
-	Glib::RefPtr<Gdk::GL::Window> glwindow = get_gl_window();
-
-	// *** OpenGL BEGIN ***
-	if (!glwindow->gl_begin(get_gl_context()))
-		return false;
-
-	this->clear();
-	if (drawMode == DrawMode::DRAW_BUNDLE) {
-		this->drawBundle();
-	} else if (drawMode == DrawMode::DRAW_CLUSTER) {
-		this->drawCluster();
-	} else if (drawMode == DrawMode::DRAW_TEST) {
-		this->drawBundle();
-	} else {
-		this->drawTest();
-		std::cout << "StructureGLDrawingArea::on_expose_event: " << "WARNING: Unknown draw mode" << std::endl;
-	}
-	this->drawTest();
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	glTranslatef(0.0, 0.0, -100.0);
-	glwindow->gl_end();
-	// Swap buffers.
-	if (glwindow->is_double_buffered()) {
-		glwindow->swap_buffers();
-	} else {
-		glFlush();
-	}
-	glwindow->gl_end();
-	// *** OpenGL END ***
-
-	return true;
-}
-
 void StructureGLDrawingArea::setDrawBundle() {
-	this->setDrawMode(DrawMode::DRAW_BUNDLE);
+	if (currentBundle == 0) {
+			std::cout << "StructureGLDrawingArea::setDrawBundle: " << "WARNING: Bundle Null " << std::endl;
+			this->setDrawTest();
+		} else {
+			this->setDrawMode(DrawMode::DRAW_BUNDLE);
+		}
 }
 
 void StructureGLDrawingArea::setDrawTest() {
 	this->setDrawMode(DrawMode::DRAW_TEST);
 }
 
-void StructureGLDrawingArea::setDrawCluster(const boost::uuids::uuid & key) {
-	currentCluster = bundle->getClusters().getObjectByKey(key);
+void StructureGLDrawingArea::setDrawCluster() {
 	if (currentCluster == 0) {
-		std::cout << "StructureGLDrawingArea::setDrawMode: " << "WARNING: Cluster not found, " << "'" << key << "'"
-				<< std::endl;
+		std::cout << "StructureGLDrawingArea::setDrawCluster: " << "WARNING: Cluster Null " << std::endl;
 		this->setDrawBundle();
 	} else {
 		this->setDrawMode(DrawMode::DRAW_CLUSTER);
 	}
 }
 
-void StructureGLDrawingArea::drawTest() {
-	std::cout << "StructureGLDrawingArea::drawTest: " << "" << std::endl;
-	Glib::RefPtr<Gdk::GL::Window> glwindow = get_gl_window();
-	bool got_window = glwindow->gl_begin(get_gl_context());
-	if (got_window == false) {
-		std::cout << "StructureGLDrawingArea::testDraw: " << "ERROR: Could not acquire gl window" << std::endl;
-		return;
-	} else {
-		std::cout << "StructureGLDrawingArea::testDraw: " << "DEBUG: Start drawing" << std::endl;
-		glTranslatef(-1.5f, 0.0f, -6.0f); // Move Left 1.5 Units And Into The Screen 6.0
-		glBegin(GL_TRIANGLES); // Drawing Using Triangles
-		glVertex3f(0.0f, 1.0f, 0.0f); // Top
-		glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-		glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-		glEnd();
-		glTranslatef(3.0f, 0.0f, 0.0f); // Move Right 3 Units
-		glBegin(GL_QUADS); // Draw A Quad
-		glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-		glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-		glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-		glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-		glwindow->gl_end();
-	}
+void StructureGLDrawingArea::setDrawNode() {
+	if (currentNode == 0) {
+			std::cout << "StructureGLDrawingArea::setDrawNode: " << "WARNING: Node Null " << std::endl;
+			this->setDrawTest();
+		} else {
+			this->setDrawMode(DrawMode::DRAW_NODE);
+		}
 }
+
+void StructureGLDrawingArea::setCurrentBundle(boost::shared_ptr<const Bundle> bun) {
+	currentBundle = bun;
+}
+void StructureGLDrawingArea::setCurrentCluster(boost::shared_ptr<const Cluster> clus) {
+}
+void StructureGLDrawingArea::setCurrentNode(boost::shared_ptr<const Node> node) {
+	currentNode = node;
+}
+
 void StructureGLDrawingArea::invalidate() {
 	get_window()->invalidate_rect(get_allocation(), false);
-}
-
-bool StructureGLDrawingArea::on_button_press_event(GdkEventButton* event) {
-	std::cout << "StructureGLDrawingArea::on_button_press_event: " << "" << std::endl;
-	// don't block
-	return false;
-}
-
-bool StructureGLDrawingArea::on_button_release_event(GdkEventButton* event) {
-	std::cout << "StructureGLDrawingArea::on_button_release_event: " << "" << std::endl;
-	return false;
-}
-
-bool StructureGLDrawingArea::on_motion_notify_event(GdkEventMotion* event) {
-	float w = this->get_width();
-	float h = this->get_height();
-	float x = event->x;
-	float y = event->y;
-	bool redraw = false;
-	std::cout << "StructureGLDrawingArea::on_motion_notify_event: " << "" << std::endl;
-
-	if (redraw == true) {
-		this->invalidate();
-	}
-	// don't block
-	return false;
 }
 
 void StructureGLDrawingArea::setDrawMode(const DrawMode mode) {
@@ -317,123 +182,21 @@ void StructureGLDrawingArea::clear() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 void StructureGLDrawingArea::drawBundle() {
-	std::cout << "StructureGLDrawingArea::drawBundle: " << bundle->getClusters().getSize() << std::endl;
-	this->drawClusters();
-	this->drawFibres();
+	bundleDrawingArea->update();
 }
 
 void StructureGLDrawingArea::drawCluster() {
-	std::cout << "StructureGLDrawingArea::drawCluster: " << currentCluster->getNodeMap().getSize() << std::endl;
-	this->drawNodes();
-	this->drawConnections();
+	clusterDrawingArea->update();
 }
 
-void StructureGLDrawingArea::drawClusters() {
-	std::cout << "StructureGLDrawingArea::drawClusters: " << clusterSpacialMap.size() << std::endl;
-	this->drawMappedPoints(clusterSpacialMap);
+void StructureGLDrawingArea::drawNode() {
+	nodeDrawingArea->update();
 }
 
-void StructureGLDrawingArea::drawFibres() {
-	std::cout << "StructureGLDrawingArea::drawFibres: " << fibreSpacialMap.size() << std::endl;
-	this->drawMappedJoins(fibreSpacialMap, clusterSpacialMap);
+void StructureGLDrawingArea::drawTest() {
+	testDrawingArea->update();
 }
 
-void StructureGLDrawingArea::drawConnections() {
-	std::cout << "StructureGLDrawingArea::drawConnections: " << connectionSpacialMap.size() << std::endl;
-	this->drawMappedJoins(connectionSpacialMap, nodeSpacialMap);
-}
-
-void StructureGLDrawingArea::drawNodes() {
-	std::cout << "StructureGLDrawingArea::drawNodes: " << nodeSpacialMap.size() << std::endl;
-	this->drawMappedPoints(nodeSpacialMap);
-}
-
-void StructureGLDrawingArea::drawMappedPoints(const std::map<boost::uuids::uuid, cryomesh::spacial::Point> & map) {
-	// forall in map
-	{
-		std::map<boost::uuids::uuid, cryomesh::spacial::Point>::const_iterator it_map = map.begin();
-		const std::map<boost::uuids::uuid, cryomesh::spacial::Point>::const_iterator it_map_end = map.end();
-		while (it_map != it_map_end) {
-			this->drawSphere(it_map->second);
-			++it_map;
-		}
-	}
-}
-
-void StructureGLDrawingArea::drawMappedJoins(
-		const std::map<boost::uuids::uuid, std::pair<boost::uuids::uuid, boost::uuids::uuid> > & map,
-		const std::map<boost::uuids::uuid, cryomesh::spacial::Point> & pointmap) {
-
-	// forall in map
-	{
-		std::map<boost::uuids::uuid, std::pair<boost::uuids::uuid, boost::uuids::uuid> >::const_iterator it_map =
-				map.begin();
-		const std::map<boost::uuids::uuid, std::pair<boost::uuids::uuid, boost::uuids::uuid> >::const_iterator
-				it_map_end = map.end();
-		while (it_map != it_map_end) {
-			boost::uuids::uuid startid = it_map->second.first;
-			boost::uuids::uuid endid = it_map->second.second;
-
-			cryomesh::spacial::Point start_point;
-			cryomesh::spacial::Point end_point;
-
-			std::map<boost::uuids::uuid, cryomesh::spacial::Point>::const_iterator it_start_found = pointmap.find(
-					startid);
-			std::map<boost::uuids::uuid, cryomesh::spacial::Point>::const_iterator it_end_found = pointmap.find(endid);
-
-			if (it_start_found != pointmap.end()) {
-				start_point = it_start_found->second;
-				if (it_end_found != pointmap.end()) {
-					end_point = it_end_found->second;
-					this->drawLine(start_point, end_point);
-				} else {
-					std::cout << "StructureGLDrawingArea::drawMappedJoins: "
-							<< "WARNING: End point for line not found, " << "'" << it_map->first << "'" << std::endl;
-				}
-			} else {
-				std::cout << "StructureGLDrawingArea::drawMappedJoins: " << "WARNING: Start point for line not found, "
-						<< "'" << it_map->first << "'" << std::endl;
-			}
-			++it_map;
-		}
-	}
-
-}
-void StructureGLDrawingArea::drawSphere(const cryomesh::spacial::Point & centre, double radius) {
-	std::cout << "StructureGLDrawingArea::drawSphere: " << "(" << centre.getX() << ", " << centre.getY() << ", "
-			<< centre.getZ() << ")" << std::endl;
-	const int SLICES = 10;
-	const int STACKS = 10;
-	const double RADIUS = 1.0;
-
-	Glib::RefPtr<Gdk::GL::Window> glwindow = get_gl_window();
-	bool got_window = glwindow->gl_begin(get_gl_context());
-	if (got_window == false) {
-		std::cout << "StructureGLDrawingArea::drawSphere: " << "ERROR: Could not acquire gl window" << std::endl;
-		return;
-	} else {
-		glPushMatrix();
-		GLUquadric * quad = gluNewQuadric();
-		gluQuadricNormals(quad, GLU_SMOOTH);
-		glColor3f(0.5, 0.5, 0.5);
-		glTranslated(centre.getX(), centre.getY(), centre.getZ());
-		gluSphere(quad, RADIUS, SLICES, STACKS);
-		gluDeleteQuadric(quad);
-		glPopMatrix();
-		glwindow->gl_end();
-	}
-}
-
-void StructureGLDrawingArea::drawLine(const cryomesh::spacial::Point & start, const cryomesh::spacial::Point & end,
-		double thickness) {
-	//	std::cout << "StructureGLDrawingArea::drawLine: " << "TODO" << std::endl;
-}
-
-boost::uuids::uuid StructureGLDrawingArea::doPick() const {
-	boost::uuids::uuid foundobj;
-	std::cout << "StructureGLDrawingArea::doPick: " << "" << std::endl;
-	return foundobj;
-}
 }//NAMESPACE
 
 }//NAMESPACE

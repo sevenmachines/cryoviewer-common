@@ -24,6 +24,7 @@ public:
 	boost::shared_ptr<SimpleGLShape> add(boost::shared_ptr<SimpleGLShape> shape);
 
 	boost::shared_ptr<SimpleGLShape> remove(boost::shared_ptr<SimpleGLShape> shape);
+	virtual void update();
 
 	void clear();
 
@@ -39,14 +40,18 @@ protected:
 		return this->onExposeEvent(event);
 	}
 
-	virtual void update();
 	virtual void initialise();
 	virtual void onRealize();
 	virtual bool onConfigureEvent(GdkEventConfigure* event);
 	virtual bool onExposeEvent(GdkEventExpose* event);
 	void invalidate();
+	bool on_button_press_event(GdkEventButton* event) ;
 
-	virtual void drawShapes();
+	bool on_button_release_event(GdkEventButton* event) ;
+
+	bool on_motion_notify_event(GdkEventMotion* event);
+
+		virtual void drawShapes();
 
 private:
 	std::map<boost::uuids::uuid, boost::shared_ptr<SimpleGLShape> > shapes;

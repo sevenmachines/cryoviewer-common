@@ -37,17 +37,18 @@ StructureWindow::~StructureWindow() {
 }
 
 void StructureWindow::updateData() {
-	std::cout<<"StructureWindow::updateData: "<<""<<std::endl;
+	this->updateClusterChooser();
+	std::cout << "StructureWindow::updateData: " << "" << std::endl;
 	if (structureDrawingArea != 0) {
-		std::cout<<"StructureWindow::updateData: "<<"structureDrawingArea != 0"<<std::endl;
+		std::cout << "StructureWindow::updateData: " << "structureDrawingArea != 0" << std::endl;
 		structureDrawingArea->update();
 	}
-	if (activitiesWindow !=0){
+	if (activitiesWindow != 0) {
 		activitiesWindow->update();
 	}
+
 }
 void StructureWindow::initialise() {
-
 	// set selected elements to some sort of defaults
 	selectedCluster = bundle->getClusters().begin()->second;
 
@@ -55,25 +56,71 @@ void StructureWindow::initialise() {
 	builder->get_widget("structureVisualiseButton", structureVisualiseButton);
 	builder->get_widget("structureVBox", structureVBox);
 	builder->get_widget("structureActivitiesToggleButton", structureActivitiesToggleButton);
+	builder->get_widget("structureChooserClusterComboBox", structureChooserClusterComboBox);
+	{
+		//Create the Tree model:
+		structureChooserClusterListStore = Gtk::ListStore::create(uuidColumns);
+		structureChooserClusterComboBox->set_model(structureChooserClusterListStore);
+		this->updateClusterChooser();
+		structureChooserClusterComboBox->pack_start(uuidColumns.columnName);
+		structureChooserClusterComboBox->set_entry_text_column(uuidColumns.columnID);
 
+	}
 	// connect up togglebuttons
 	structureVisualiseButton->signal_clicked().connect(
 			sigc::mem_fun(*this, &StructureWindow::onStructureVisualiseButtonClicked));
 	structureActivitiesToggleButton->signal_clicked().connect(
 			sigc::mem_fun(*this, &StructureWindow::onStructureActivitiesToggleButtonClicked));
 
+	// create combo box xhooser
+	structureChooserClusterComboBox->add(structureChooserClusterEntries);
+	structureChooserClusterComboBox->signal_changed().connect(
+			sigc::mem_fun(*this, &StructureWindow::onStructureChooserClusterComboBoxchanged));
+
 	structureDrawingArea = new StructureGLDrawingArea(bundle);
 	//TODO test by setting to first cluster
 	structureDrawingArea->setDrawTest();
 
 	structureVBox->pack_start(*structureDrawingArea);
+	this->update();
 	structureVBox->show();
+}
+
+void StructureWindow::updateClusterChooser() {
+	if (structureChooserClusterComboBox != 0) {
+		if (bundle != 0) {
+			const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> > & all_clusters =
+					bundle->getClusters().getCollection();
+			structureChooserClusterEntries.clear();
+			// forall in all_clusters
+			{
+				int count = 1;
+				std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> >::const_iterator it_all_clusters =
+						all_clusters.begin();
+				const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> >::const_iterator it_all_clusters_end =
+						all_clusters.end();
+				while (it_all_clusters != it_all_clusters_end) {
+					Gtk::TreeModel::Row row = *(structureChooserClusterListStore->append());
+					std::stringstream ss;
+					ss << count;
+					row[uuidColumns.columnID] = ss.str();
+					row[uuidColumns.columnName] = it_all_clusters->second->getUUIDString();
+					++count;
+					++it_all_clusters;
+				}
+			}
+		}
+	}
+
+	structureChooserClusterComboBox->pack_start(uuidColumns.columnName);
+
+	structureChooserClusterComboBox->set_entry_text_column(uuidColumns.columnID);
+
 }
 
 void StructureWindow::onStructureVisualiseButtonClicked() {
 	std::cout << "StructureWindow::onStructureVisualiseButtonClicked: " << "TODO: This is a demo" << std::endl;
-	const std::map<boost::uuids::uuid, boost::shared_ptr<Node> > & nodes =
-			selectedCluster->getNodes();
+	const std::map<boost::uuids::uuid, boost::shared_ptr<Node> > & nodes = selectedCluster->getNodes();
 	this->showVisual(nodes);
 }
 
@@ -87,6 +134,20 @@ void StructureWindow::onStructureActivitiesToggleButtonClicked() {
 		activitiesWindow->deactivate();
 	}
 }
+
+void StructureWindow::onStructureChooserClusterComboBoxchanged() {
+	  boost::shared_ptr< Gtk::Entry > entry (structureChooserClusterComboBox->get_entry());
+	  std::string entry_str;
+	  if(entry !=0)
+	  {
+		  entry_str =entry->get_text() ;
+	  }else{
+		  std::cout<<"StructureWindow::onStructureChooserClusterComboBoxchanged: "<<"Null Entry"<<std::endl;
+	  }
+		std::cout << "StructureWindow::onStructureChooserClusterComboBoxchanged: " << entry_str << std::endl;
+
+}
+
 void StructureWindow::showVisual(
 		const std::map<boost::uuids::uuid, boost::shared_ptr<cryomesh::components::Node> > & nodes) {
 	osgViewer::Viewer viewer;

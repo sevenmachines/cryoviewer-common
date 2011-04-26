@@ -22,7 +22,7 @@ int NodeActivityDrawingAreaPanel::getIds() {
 }
 
 NodeActivityDrawingAreaPanel::NodeActivityDrawingAreaPanel(const boost::shared_ptr<cryomesh::components::Node> & nd) :
-	node(nd), activated(false) , id(NodeActivityDrawingAreaPanel::getIds()){
+	node(nd), activated(false), id(NodeActivityDrawingAreaPanel::getIds()) {
 	this->initialise();
 }
 
@@ -48,33 +48,63 @@ void NodeActivityDrawingAreaPanel::update() {
 
 void NodeActivityDrawingAreaPanel::initialise() {
 	activityDrawingArea = boost::shared_ptr<NodeActivityDrawingArea>(new NodeActivityDrawingArea(node));
-	std::stringstream ss;
-	ss<<this->id;
+	// setup label
+	{
+		std::stringstream ss;
+		ss << this->id;
+		checkButtonsVBoxLabel = boost::shared_ptr<Gtk::Label>(new Gtk::Label(ss.str()));
 
-	activityCheckButton = boost::shared_ptr<Gtk::CheckButton>(new Gtk::CheckButton(ss.str()));
+	}
 
-	activityCheckButton->signal_clicked().connect(
-			sigc::mem_fun(*this, &NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked));
+	// setup check buttons
+	{
+		checkButtonsVBox = boost::shared_ptr<Gtk::VBox>(new Gtk::VBox);
+
+		activityCheckButton = boost::shared_ptr<Gtk::CheckButton>(new Gtk::CheckButton("Activated"));
+		activityCheckButton->signal_clicked().connect(
+				sigc::mem_fun(*this, &NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked));
+
+		showConnectionsCheckButton = boost::shared_ptr<Gtk::CheckButton>(new Gtk::CheckButton("Connections"));
+		showConnectionsCheckButton->signal_clicked().connect(
+				sigc::mem_fun(*this, &NodeActivityDrawingAreaPanel::onShowConnectionsCheckButtonClicked));
+
+	}
+
+	// create checkbutton layout
+	{
+		checkButtonsVBox->pack_start(*(checkButtonsVBoxLabel), false, false);
+		checkButtonsVBox->pack_start(*(activityCheckButton), false, false);
+		checkButtonsVBox->pack_start(*(showConnectionsCheckButton), false, false);
+	}
+
 
 	activityLabel = boost::shared_ptr<Gtk::Label>(new Gtk::Label(node->getUUIDString()));
-	if (node->isPrimaryInputAttachedNode() ==true){
+	if (node->isPrimaryInputAttachedNode() == true) {
 		this->setAsPrimaryInput();
-	}else if (node->isPrimaryOutputAttachedNode()==true){
+	} else if (node->isPrimaryOutputAttachedNode() == true) {
 		this->setAsPrimaryOutput();
 	}
 	this->set_size_request(400, 100);
 	//this->pack_start(*activityLabel);
-	this->pack_start(*(activityCheckButton), false, false);
+	this->pack_start(*checkButtonsVBox, false, false);
 	this->pack_start(*(activityDrawingArea), true, true);
 	this->show();
 }
 
-void NodeActivityDrawingAreaPanel::setAsPrimaryInput(){
+void NodeActivityDrawingAreaPanel::setAsPrimaryInput() {
 	activityDrawingArea->setAsPrimaryInput();
 }
 
-void NodeActivityDrawingAreaPanel::setAsPrimaryOutput(){
+void NodeActivityDrawingAreaPanel::setAsPrimaryOutput() {
 	activityDrawingArea->setAsPrimaryOutput();
+}
+
+void NodeActivityDrawingAreaPanel::onShowConnectionsCheckButtonClicked() {
+	if (showConnectionsCheckButton->get_active() == true) {
+		std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "TRUE" << std::endl;
+	} else {
+		std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "FALSE" << std::endl;
+	}
 }
 
 void NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked() {
@@ -90,7 +120,7 @@ void NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked() {
 		this->setActivated(false);
 		activityDrawingArea->setActivated(false);
 		//activityDrawingArea->invalidateWindow();
-}
+	}
 }
 
 }//NAMESPACE

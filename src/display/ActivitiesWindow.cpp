@@ -120,7 +120,7 @@ boost::shared_ptr<NodeActivityDrawingAreaPanel> ActivitiesWindow::addNode(
 		const boost::shared_ptr<cryomesh::components::Node> & node) {
 	boost::shared_ptr<NodeActivityDrawingAreaPanel> panel(new NodeActivityDrawingAreaPanel(node));
 	drawingAreas[node->getUUID()] = panel;
-	activitiesVBox->pack_end(*panel);
+	activitiesVBox->pack_start(*panel);
 	return panel;
 }
 

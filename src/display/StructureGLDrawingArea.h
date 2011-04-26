@@ -50,6 +50,7 @@ public:
 	virtual void setCurrentNode(boost::shared_ptr<const Node> node);
 
 protected:
+
 	virtual void initialise();
 
 	virtual void setDrawMode(const DrawMode mode);

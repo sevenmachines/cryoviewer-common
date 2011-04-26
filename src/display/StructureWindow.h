@@ -18,6 +18,11 @@
 #include <gtkmm/button.h>
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/box.h>
+#include <gtkmm/liststore.h>
+#include <gtkmm/combobox.h>
+#include <gtkmm/comboboxentrytext.h>
+#include <gtkmm/comboboxtext.h>
+
 #include <string>
 #include <osg/Group>
 #include <osgViewer/Viewer>
@@ -39,19 +44,41 @@ public:
 
 protected:
 
+	//Tree model columns:
+	class UUIDColumns: public Gtk::TreeModel::ColumnRecord {
+	public:
+
+		UUIDColumns() {
+			add(columnID);
+			add(columnName);
+		}
+
+		Gtk::TreeModelColumn<Glib::ustring> columnID; //The data to choose - this must be text.
+		Gtk::TreeModelColumn<Glib::ustring> columnName;
+	};
+
+	UUIDColumns uuidColumns;
+
+	//Child widgets:
+	Glib::RefPtr<Gtk::ListStore> structureChooserClusterListStore;
+
 	Gtk::Button * structureVisualiseButton;
 	Gtk::VBox * structureVBox;
 	Gtk::ToggleButton * structureActivitiesToggleButton;
 	StructureGLDrawingArea * structureDrawingArea;
-	boost::shared_ptr< ActivitiesWindow > activitiesWindow;
-
+	boost::shared_ptr<ActivitiesWindow> activitiesWindow;
+	//Child widgets:
+	Gtk::ComboBox * structureChooserClusterComboBox;
+	Gtk::ComboBoxText structureChooserClusterEntries;
 	void onStructureVisualiseButtonClicked();
 	void onStructureActivitiesToggleButtonClicked();
+	void onStructureChooserClusterComboBoxchanged();
 
+	void updateClusterChooser() ;
 	virtual void updateData();
 	virtual void initialise();
 
-	void showVisual(const std::map<boost::uuids::uuid, boost::shared_ptr<cryomesh::components::Node> > & nodes)  ;
+	void showVisual(const std::map<boost::uuids::uuid, boost::shared_ptr<cryomesh::components::Node> > & nodes);
 	void showText(osg::Group* root) const ;
 
 	osg::Node* createHUD(osgText::Text* updateText);
@@ -63,7 +90,7 @@ private:
 	boost::shared_ptr<cryomesh::components::Node> selectedNode;
 	boost::shared_ptr<cryomesh::structures::Cluster> selectedCluster;
 
-	osg::ref_ptr<osgText::Text>  displayText;
+	osg::ref_ptr<osgText::Text> displayText;
 };
 
 }

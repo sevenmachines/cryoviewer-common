@@ -33,12 +33,17 @@ public:
 protected:
 	boost::shared_ptr< NodeActivityDrawingArea > activityDrawingArea;
 	boost::shared_ptr< Gtk::CheckButton > activityCheckButton;
-	boost::shared_ptr< Gtk::Label > activityLabel;
+	boost::shared_ptr< Gtk::CheckButton > showConnectionsCheckButton;
+	boost::shared_ptr< Gtk::VBox > checkButtonsVBox;
+	boost::shared_ptr< Gtk::Label > checkButtonsVBoxLabel;
+
+boost::shared_ptr< Gtk::Label > activityLabel;
 
 	void initialise();
 	void setAsPrimaryInput();
 		void setAsPrimaryOutput();
 	void onActivityCheckButtonClicked() ;
+	void onShowConnectionsCheckButtonClicked();
 
 	static int ids;
 	static int getIds();

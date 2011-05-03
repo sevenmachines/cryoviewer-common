@@ -37,7 +37,6 @@ protected:
 	virtual void updateData();
 	virtual void initialise();
 
-	virtual void updateConnectionDisplay();
 
 	Gtk::VBox * connectionDisplayInputsVBox;
 	Gtk::VBox * connectionDisplayOutputsVBox;

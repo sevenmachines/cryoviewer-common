@@ -53,7 +53,7 @@ protected:
 			add(columnName);
 		}
 
-		Gtk::TreeModelColumn<Glib::ustring> columnID; //The data to choose - this must be text.
+		Gtk::TreeModelColumn<int> columnID; //The data to choose - this must be text.
 		Gtk::TreeModelColumn<Glib::ustring> columnName;
 	};
 
@@ -61,6 +61,8 @@ protected:
 
 	//Child widgets:
 	Glib::RefPtr<Gtk::ListStore> structureChooserClusterListStore;
+	Gtk::ComboBox * structureChooserClusterComboBox;
+	//Gtk::ComboBoxText structureChooserClusterEntries;
 
 	Gtk::Button * structureVisualiseButton;
 	Gtk::VBox * structureVBox;
@@ -68,11 +70,10 @@ protected:
 	StructureGLDrawingArea * structureDrawingArea;
 	boost::shared_ptr<ActivitiesWindow> activitiesWindow;
 	//Child widgets:
-	Gtk::ComboBox * structureChooserClusterComboBox;
-	Gtk::ComboBoxText structureChooserClusterEntries;
+
 	void onStructureVisualiseButtonClicked();
 	void onStructureActivitiesToggleButtonClicked();
-	void onStructureChooserClusterComboBoxchanged();
+	void onStructureChooserClusterComboBoxChanged();
 
 	void updateClusterChooser() ;
 	virtual void updateData();

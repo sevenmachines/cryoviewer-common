@@ -15,6 +15,7 @@
 #include <osg/PositionAttitudeTransform>
 #include <osgGA/TrackballManipulator>
 #include <osg/ShapeDrawable>
+#include <boost/uuid/uuid_io.hpp>
 
 using namespace cryomesh::components;
 
@@ -62,8 +63,9 @@ void StructureWindow::initialise() {
 		structureChooserClusterListStore = Gtk::ListStore::create(uuidColumns);
 		structureChooserClusterComboBox->set_model(structureChooserClusterListStore);
 		this->updateClusterChooser();
+		structureChooserClusterComboBox->pack_start(uuidColumns.columnID);
 		structureChooserClusterComboBox->pack_start(uuidColumns.columnName);
-		structureChooserClusterComboBox->set_entry_text_column(uuidColumns.columnID);
+		//structureChooserClusterComboBox->set_entry_text_column(uuidColumns.columnID);
 
 	}
 	// connect up togglebuttons
@@ -73,9 +75,12 @@ void StructureWindow::initialise() {
 			sigc::mem_fun(*this, &StructureWindow::onStructureActivitiesToggleButtonClicked));
 
 	// create combo box xhooser
-	structureChooserClusterComboBox->add(structureChooserClusterEntries);
+	//structureChooserClusterComboBox->add(structureChooserClusterEntries);
 	structureChooserClusterComboBox->signal_changed().connect(
-			sigc::mem_fun(*this, &StructureWindow::onStructureChooserClusterComboBoxchanged));
+			sigc::mem_fun(*this, &StructureWindow::onStructureChooserClusterComboBoxChanged));
+
+	// check if we have any clusters and set combo box if we do
+	structureChooserClusterComboBox->set_active(1);
 
 	structureDrawingArea = new StructureGLDrawingArea(bundle);
 	//TODO test by setting to first cluster
@@ -91,7 +96,7 @@ void StructureWindow::updateClusterChooser() {
 		if (bundle != 0) {
 			const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> > & all_clusters =
 					bundle->getClusters().getCollection();
-			structureChooserClusterEntries.clear();
+			structureChooserClusterListStore->clear();
 			// forall in all_clusters
 			{
 				int count = 1;
@@ -99,22 +104,20 @@ void StructureWindow::updateClusterChooser() {
 						all_clusters.begin();
 				const std::map<boost::uuids::uuid, boost::shared_ptr<Cluster> >::const_iterator it_all_clusters_end =
 						all_clusters.end();
+				Gtk::TreeModel::Row row;
 				while (it_all_clusters != it_all_clusters_end) {
-					Gtk::TreeModel::Row row = *(structureChooserClusterListStore->append());
-					std::stringstream ss;
-					ss << count;
-					row[uuidColumns.columnID] = ss.str();
+					row = *(structureChooserClusterListStore->append());
+					row[uuidColumns.columnID] = count;
 					row[uuidColumns.columnName] = it_all_clusters->second->getUUIDString();
+					//uuidColumns.columnUUID = it_all_clusters->second->getUUID();
+					std::cout << "StructureWindow::updateClusterChooser: " << "Adding: ID: " << count << " Name: "
+							<< it_all_clusters->second->getUUIDString() << std::endl;
 					++count;
 					++it_all_clusters;
 				}
 			}
 		}
 	}
-
-	structureChooserClusterComboBox->pack_start(uuidColumns.columnName);
-
-	structureChooserClusterComboBox->set_entry_text_column(uuidColumns.columnID);
 
 }
 
@@ -135,17 +138,37 @@ void StructureWindow::onStructureActivitiesToggleButtonClicked() {
 	}
 }
 
-void StructureWindow::onStructureChooserClusterComboBoxchanged() {
-	  boost::shared_ptr< Gtk::Entry > entry (structureChooserClusterComboBox->get_entry());
-	  std::string entry_str;
-	  if(entry !=0)
-	  {
-		  entry_str =entry->get_text() ;
-	  }else{
-		  std::cout<<"StructureWindow::onStructureChooserClusterComboBoxchanged: "<<"Null Entry"<<std::endl;
-	  }
-		std::cout << "StructureWindow::onStructureChooserClusterComboBoxchanged: " << entry_str << std::endl;
+void StructureWindow::onStructureChooserClusterComboBoxChanged() {
+	Gtk::TreeModel::iterator iter = structureChooserClusterComboBox->get_active();
+	if (iter) {
+		Gtk::TreeModel::Row row = *iter;
+		if (row) {
+			//Get the data for the selected row, using our knowledge of the tree
+			//model:
+			int id = row[uuidColumns.columnID];
+			Glib::ustring name = row[uuidColumns.columnName];
 
+			boost::shared_ptr<Cluster> found_cluster;
+			// retreive a uuid
+			{
+				boost::uuids::string_generator gen;
+				std::stringstream ss;
+				ss << "{" << name << "}";
+				boost::uuids::uuid temp_uuid = gen(ss.str());
+				found_cluster = bundle->getClusters().getObjectByKey(temp_uuid);
+			}
+			//std::cout << " ID=" << id << ", name=" << name << std::endl;
+
+			if (found_cluster != 0) {
+				std::cout << "StructureWindow::onStructureChooserClusterComboBoxChanged: "
+						<< "INFO: Setting active cluster to '" << found_cluster->getUUIDString() << "'" << std::endl;
+				this->selectedCluster = found_cluster;
+			} else {
+				std::cout << "StructureWindow::onStructureChooserClusterComboBoxChanged: "
+						<< "WARNING: Cannot find cluster: " << name << std::endl;
+			}
+		}
+	}
 }
 
 void StructureWindow::showVisual(

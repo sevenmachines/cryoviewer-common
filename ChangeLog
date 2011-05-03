@@ -1,0 +1,3 @@
+2011-05-03  SevenMachines  <SevenMachines@yahoo.co.uk>
+
+	* src/display/StructureWindow.cpp (StructureWindow::updateClusterChooser): Properly generate luster combo chooser

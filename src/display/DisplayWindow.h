@@ -8,6 +8,7 @@
 #ifndef DISPLAYWINDOW_H_
 #define DISPLAYWINDOW_H_
 
+#include "common/Debuggable.h"
 #include <iostream>
 #include <gtkmm/builder.h>
 #include <gtkmm/window.h>
@@ -21,7 +22,7 @@ namespace display {
 /**
  * Super class of all display windows
  */
-class DisplayWindow {
+class DisplayWindow : public cryomesh::common::Debuggable{
 public:
 	DisplayWindow() {
 		mainWindow = 0;

@@ -9,7 +9,7 @@
 #define NODEACTIVITYDRAWINGAREAPANEL_H_
 
 #include "NodeActivityDrawingArea.h"
-
+#include "ConnectionDisplayWindow.h"
 #include <gtkmm/box.h>
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/label.h>
@@ -50,6 +50,7 @@ boost::shared_ptr< Gtk::Label > activityLabel;
 
 private:
 	const boost::shared_ptr< cryomesh::components::Node > node;
+	boost::shared_ptr< ConnectionDisplayWindow > connectionDisplayWindow;
 	bool activated;
 	int id;
 };

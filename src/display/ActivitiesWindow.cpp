@@ -17,11 +17,20 @@ namespace display {
 ActivitiesWindow::ActivitiesWindow(const boost::shared_ptr<cryomesh::structures::Cluster> clus) :
 	cluster(clus) {
 	loadWindow("Data/activitieswindow.glade");
+
+	// set title
+	{
+		std::stringstream ss;
+		ss << "Cluster: " << clus->getUUIDString();
+		this->setTitle(ss.str());
+	}
+
 	this->initialise();
 	mainWindow->show_all();
 }
 
 ActivitiesWindow::~ActivitiesWindow() {
+	std::cout << "ActivitiesWindow::~ActivitiesWindow: " << "" << std::endl;
 }
 
 void ActivitiesWindow::updateData() {
@@ -44,7 +53,6 @@ void ActivitiesWindow::updateData() {
 }
 
 void ActivitiesWindow::initialise() {
-	this->setTitle("Cryoviewer Activities");
 	builder->get_widget("activitiesVBox", activitiesVBox);
 	builder->get_widget("activitiesWindowHBox", activitiesWindowHBox);
 	builder->get_widget("activitiesWindowCheckButtonSelectAll", activitiesWindowCheckButtonSelectAll);
@@ -58,7 +66,7 @@ void ActivitiesWindow::initialise() {
 }
 
 void ActivitiesWindow::updateNodeDisplay() {
-	std::cout << "ActivitiesWindow::updateNodeDisplay: " << "drawingAreas before: " << drawingAreas.size() << std::endl;
+	//std::cout << "ActivitiesWindow::updateNodeDisplay: " << "drawingAreas before: " << drawingAreas.size() << std::endl;
 	std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> > drawing_areas_copy(drawingAreas);
 
 	int count_added = 0;
@@ -69,7 +77,7 @@ void ActivitiesWindow::updateNodeDisplay() {
 		std::map<boost::uuids::uuid, boost::shared_ptr<Node> >::const_iterator it_all_nodes = all_nodes.begin();
 		const std::map<boost::uuids::uuid, boost::shared_ptr<Node> >::const_iterator it_all_nodes_end = all_nodes.end();
 		while (it_all_nodes != it_all_nodes_end) {
-			boost::shared_ptr < NodeActivityDrawingAreaPanel > found_panel = this->findNodePanelByNode(
+			boost::shared_ptr<NodeActivityDrawingAreaPanel> found_panel = this->findNodePanelByNode(
 					it_all_nodes->second);
 
 			//if node doesnt exist then add it
@@ -108,10 +116,12 @@ void ActivitiesWindow::updateNodeDisplay() {
 	if (this->isActive() == true) {
 		mainWindow->show_all();
 	}
-	if (all_nodes.size() != drawingAreas.size()) {
-		std::cout << "ActivitiesWindow::updateNodeDisplay: " << "ERROR: all_nodes.size() != drawingAreas.size(): "
-				<< all_nodes.size() << " != " << drawingAreas.size() << std::endl;
-		assert(false);
+	if (this->isDebugOn() == true) {
+		if (all_nodes.size() != drawingAreas.size()) {
+			std::cout << "ActivitiesWindow::updateNodeDisplay: " << "ERROR: all_nodes.size() != drawingAreas.size(): "
+					<< all_nodes.size() << " != " << drawingAreas.size() << std::endl;
+			assert(false);
+		}
 	}
 
 }

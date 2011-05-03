@@ -34,6 +34,7 @@ bool NodeActivityDrawingAreaPanel::isActivated() const {
 
 void NodeActivityDrawingAreaPanel::setActivated(bool b) {
 	activated = b;
+	connectionDisplayWindow.reset();
 	//activityDrawingArea->showDrawingArea(this->isActivated());
 	activityDrawingArea->setActivated(b);
 	activityCheckButton->set_active(b);
@@ -42,6 +43,9 @@ void NodeActivityDrawingAreaPanel::setActivated(bool b) {
 void NodeActivityDrawingAreaPanel::update() {
 	if (this->isActivated() == true) {
 		activityDrawingArea->update();
+		if (connectionDisplayWindow!=0){
+			connectionDisplayWindow->update();
+		}
 		std::cout << "NodeActivityDrawingAreaPanel::update: " << *node << std::endl;
 	}
 }
@@ -102,8 +106,14 @@ void NodeActivityDrawingAreaPanel::setAsPrimaryOutput() {
 void NodeActivityDrawingAreaPanel::onShowConnectionsCheckButtonClicked() {
 	if (showConnectionsCheckButton->get_active() == true) {
 		std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "TRUE" << std::endl;
+		// create a connections window
+		if (connectionDisplayWindow ==0){
+			connectionDisplayWindow = boost::shared_ptr< ConnectionDisplayWindow > (new ConnectionDisplayWindow(node));
+		}
+		connectionDisplayWindow->activate();
+
 	} else {
-		std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "FALSE" << std::endl;
+		connectionDisplayWindow->deactivate();
 	}
 }
 

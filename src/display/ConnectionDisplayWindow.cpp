@@ -16,11 +16,19 @@ namespace display {
 ConnectionDisplayWindow::ConnectionDisplayWindow(const boost::shared_ptr<cryomesh::components::Node> & nd) :
 	node(nd) {
 	loadWindow("Data/connectiondisplaywindow.glade");
-	this->initialise();
+	// set title
+	{
+		std::stringstream ss;
+		ss << "Node: " << node->getUUIDString();
+		this->setTitle(ss.str());
+	}
+
 	mainWindow->show_all();
+	this->initialise();
 }
 
 ConnectionDisplayWindow::~ConnectionDisplayWindow() {
+	std::cout << "ConnectionDisplayWindow::~ConnectionDisplayWindow: " << "" << std::endl;
 }
 
 void ConnectionDisplayWindow::initialise() {
@@ -30,12 +38,46 @@ void ConnectionDisplayWindow::initialise() {
 		builder->get_widget("connectionDisplayOutputsVBox", connectionDisplayOutputsVBox);
 
 	}
-	// create all the connections for the node
+	this->updateInputComponentDisplay();
+	this->updateOutputComponentDisplay();
 
+	connectionDisplayInputsVBox->show_all();
+	connectionDisplayOutputsVBox->show_all();
 }
 
 void ConnectionDisplayWindow::updateData() {
-	std::cout << "ConnectionDisplayWindow::updateData: " << "TODO" << std::endl;
+	// update input panels
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> > & panels_map = inputPanelsMap;
+		// forall in panels_map
+		{
+			std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> >::const_iterator it_panels_map =
+					panels_map.begin();
+			const std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> >::const_iterator
+					it_panels_map_end = panels_map.end();
+			while (it_panels_map != it_panels_map_end) {
+				it_panels_map->second->update();
+				++it_panels_map;
+			}
+		}
+	}
+
+	// update output panels
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> > & panels_map = outputPanelsMap;
+		// forall in panels_map
+		{
+			std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> >::const_iterator it_panels_map =
+					panels_map.begin();
+			const std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> >::const_iterator
+					it_panels_map_end = panels_map.end();
+			while (it_panels_map != it_panels_map_end) {
+				it_panels_map->second->update();
+				++it_panels_map;
+			}
+		}
+	}
+
 }
 
 void ConnectionDisplayWindow::updateInputComponentDisplay() {
@@ -62,12 +104,8 @@ void ConnectionDisplayWindow::updateComponentDisplay(
 		const std::map<boost::uuids::uuid, boost::shared_ptr<cryomesh::components::Connection> >::const_iterator
 				it_all_components_end = all_components.end();
 		while (it_all_components != it_all_components_end) {
-			boost::shared_ptr<ConnectionActivityPanel> found_panel ;
-			if (type == INPUT_CONNECTIONS_PANEL) {
-				found_panel = this->findComponentPanelByUUID(it_all_components->second, inputPanelsMap);
-			} else if (type == OUTPUT_CONNECTIONS_PANEL) {
-				found_panel = this->findComponentPanelByUUID(it_all_components->second, outputPanelsMap);
-			}
+			boost::shared_ptr<ConnectionActivityPanel> found_panel = this->findComponentPanelByUUID(
+					it_all_components->second, panelsMap);
 
 			//if node doesnt exist then add it
 			if (found_panel == 0) {
@@ -78,6 +116,9 @@ void ConnectionDisplayWindow::updateComponentDisplay(
 				} else if (type == OUTPUT_CONNECTIONS_PANEL) {
 					boost::shared_ptr<ConnectionActivityPanel> panel = this->addOutputComponent(
 							it_all_components->second);
+				} else {
+					std::cout << "ConnectionDisplayWindow::updateComponentDisplay: "
+							<< "WARNING: Unknown type for addOutputComponent" << std::endl;
 				}
 				++count_added;
 			} else {
@@ -111,28 +152,38 @@ void ConnectionDisplayWindow::updateComponentDisplay(
 	if (this->isActive() == true) {
 		mainWindow->show_all();
 	}
-	if (all_components.size() != panelsMap.size()) {
-		std::cout << "ConnectionDisplayWindow::updateComponentDisplay: "
-				<< "ERROR: all_components.size() != panelsMap.size(): " << all_components.size() << " != "
-				<< panelsMap.size() << std::endl;
-		assert(false);
+
+	if (this->isDebugOn() == true) {
+		int all_panels_count = inputPanelsMap.size() + outputPanelsMap.size();
+		if (all_components.size() != all_panels_count) {
+			std::cout << "ConnectionDisplayWindow::updateComponentDisplay: " << "inputPanelsMap: "
+					<< inputPanelsMap.size() << " outputPanelsMap: " << outputPanelsMap.size() << std::endl;
+			std::cout << "ConnectionDisplayWindow::updateComponentDisplay: "
+					<< "ERROR: all_components.size() != panelsMap.size(): " << all_components.size() << " != "
+					<< panelsMap.size() << std::endl;
+			assert(false);
+		}
 	}
 
 }
 boost::shared_ptr<ConnectionActivityPanel> ConnectionDisplayWindow::addInputComponent(
 		const boost::shared_ptr<cryomesh::components::Connection> & connection) {
-	boost::shared_ptr<ConnectionActivityPanel> temp_panel = this->addComponent(connection,inputPanelsMap);
+	boost::shared_ptr<ConnectionActivityPanel> temp_panel = this->addComponent(connection, inputPanelsMap);
 	if (temp_panel != 0) {
 		connectionDisplayInputsVBox->pack_start(*temp_panel);
+	} else {
+		std::cout << "ConnectionDisplayWindow::addInputComponent: " << "WARNING: Null component" << std::endl;
 	}
 	return temp_panel;
 }
 
 boost::shared_ptr<ConnectionActivityPanel> ConnectionDisplayWindow::addOutputComponent(
 		const boost::shared_ptr<cryomesh::components::Connection> & connection) {
-	boost::shared_ptr<ConnectionActivityPanel> temp_panel = this->addComponent(connection, inputPanelsMap);
+	boost::shared_ptr<ConnectionActivityPanel> temp_panel = this->addComponent(connection, outputPanelsMap);
 	if (temp_panel != 0) {
 		connectionDisplayOutputsVBox->pack_start(*temp_panel);
+	} else {
+		std::cout << "ConnectionDisplayWindow::addOutputComponent: " << "WARNING: Null component" << std::endl;
 	}
 	return temp_panel;
 }

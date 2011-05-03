@@ -75,7 +75,8 @@ protected:
 	void onStructureActivitiesToggleButtonClicked();
 	void onStructureChooserClusterComboBoxChanged();
 
-	void updateClusterChooser() ;
+	void updateClusterChooser();
+		virtual void setCluster(boost::shared_ptr<cryomesh::structures::Cluster>, bool activated=false);
 	virtual void updateData();
 	virtual void initialise();
 

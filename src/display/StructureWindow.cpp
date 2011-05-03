@@ -39,9 +39,7 @@ StructureWindow::~StructureWindow() {
 
 void StructureWindow::updateData() {
 	this->updateClusterChooser();
-	std::cout << "StructureWindow::updateData: " << "" << std::endl;
 	if (structureDrawingArea != 0) {
-		std::cout << "StructureWindow::updateData: " << "structureDrawingArea != 0" << std::endl;
 		structureDrawingArea->update();
 	}
 	if (activitiesWindow != 0) {
@@ -49,10 +47,23 @@ void StructureWindow::updateData() {
 	}
 
 }
-void StructureWindow::initialise() {
-	// set selected elements to some sort of defaults
-	selectedCluster = bundle->getClusters().begin()->second;
+void StructureWindow::setCluster(boost::shared_ptr<cryomesh::structures::Cluster> cluster, bool activated) {
+	if (activitiesWindow != 0) {
+		activitiesWindow->deactivate();
+		activitiesWindow.reset();
+	}
+	selectedCluster = cluster;
+	this->update();
+	activitiesWindow = boost::shared_ptr<ActivitiesWindow>(new ActivitiesWindow(selectedCluster));
+	structureActivitiesToggleButton->set_active(activated);
+	if (activated == true) {
+		activitiesWindow->activate();
+	} else {
+		activitiesWindow->deactivate();
+	}
+}
 
+void StructureWindow::initialise() {
 	// get out widgets
 	builder->get_widget("structureVisualiseButton", structureVisualiseButton);
 	builder->get_widget("structureVBox", structureVBox);
@@ -87,7 +98,7 @@ void StructureWindow::initialise() {
 	structureDrawingArea->setDrawTest();
 
 	structureVBox->pack_start(*structureDrawingArea);
-	this->update();
+	this->setCluster(bundle->getClusters().begin()->second);
 	structureVBox->show();
 }
 
@@ -162,7 +173,7 @@ void StructureWindow::onStructureChooserClusterComboBoxChanged() {
 			if (found_cluster != 0) {
 				std::cout << "StructureWindow::onStructureChooserClusterComboBoxChanged: "
 						<< "INFO: Setting active cluster to '" << found_cluster->getUUIDString() << "'" << std::endl;
-				this->selectedCluster = found_cluster;
+				this->setCluster(found_cluster, true);
 			} else {
 				std::cout << "StructureWindow::onStructureChooserClusterComboBoxChanged: "
 						<< "WARNING: Cannot find cluster: " << name << std::endl;

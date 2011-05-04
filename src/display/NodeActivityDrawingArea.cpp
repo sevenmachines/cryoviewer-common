@@ -22,17 +22,16 @@ NodeActivityDrawingArea::NodeActivityDrawingArea(const boost::shared_ptr<cryomes
 	node(nd) {
 }
 
-
 NodeActivityDrawingArea::~NodeActivityDrawingArea() {
 
 }
 
-void NodeActivityDrawingArea::setAsPrimaryInput(){
-	std::cout<<"NodeActivityDrawingArea::setAsPrimaryInput: "<<""<<std::endl;
+void NodeActivityDrawingArea::setAsPrimaryInput() {
+	std::cout << "NodeActivityDrawingArea::setAsPrimaryInput: " << "" << std::endl;
 	this->setColourScheme(ActivityDrawingArea::PRIMARY_INPUT_COLOUR_SCHEME);
 }
-void NodeActivityDrawingArea::setAsPrimaryOutput(){
-	std::cout<<"NodeActivityDrawingArea::setAsPrimaryOutput: "<<""<<std::endl;
+void NodeActivityDrawingArea::setAsPrimaryOutput() {
+	std::cout << "NodeActivityDrawingArea::setAsPrimaryOutput: " << "" << std::endl;
 	this->setColourScheme(ActivityDrawingArea::PRIMARY_OUTPUT_COLOUR_SCHEME);
 
 }
@@ -78,10 +77,10 @@ void NodeActivityDrawingArea::drawText() {
 	cr->save();
 	cr->set_line_width(2.0);
 	cr->set_source_rgb(1, 1, 1);
-	cr->set_font_size(18);
+	cr->set_font_size(12);
 
 	{
-		cr->move_to(width / 2, 20);
+		cr->move_to(width / 5, 20);
 		std::stringstream ss;
 		ss << "ID: " << node->getUUIDString();
 		cr->show_text(ss.str());
@@ -89,10 +88,14 @@ void NodeActivityDrawingArea::drawText() {
 
 	{
 		std::stringstream ss;
-		cr->move_to(width / 2, 40);
-		// 	ss<<"strength: "<<fibril->getMutator().getStrength()
-		//    	<<" compression: "<<fibril->getMutator().getCompression()
-		//  	<<" delay: " <<fibril->getMutator().getDelay();
+		cr->move_to(width / 5, 40);
+		int impulse_count = node->getImpulses().getSize();
+		int inputs_count = node->getConnector().getInputs().size();
+		int outputs_count = node->getConnector().getOutputs().size();
+
+		ss << "Impulses: " << impulse_count;
+		ss<< " Inputs: "<< inputs_count;
+		ss<< " Outputs: "<<outputs_count;
 		cr->show_text(ss.str());
 	}
 	cr->restore();

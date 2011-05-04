@@ -37,13 +37,13 @@ public:
 		DisplayColours(Gdk::Color main_colour, Gdk::Color background_colour, Gdk::Color axis_colour) :
 			mainColour(main_colour), backgroundColour(background_colour), axisColour(axis_colour) {
 		}
-		Gdk::Color & getMainColour() {
+		const Gdk::Color & getMainColour()const{
 			return mainColour;
 		}
-		Gdk::Color & getBackgroundColour() {
+		const Gdk::Color & getBackgroundColour() const{
 			return backgroundColour;
 		}
-		Gdk::Color & getAxisColour() {
+		const Gdk::Color & getAxisColour()const {
 			return axisColour;
 		}
 		void setMainColour(Gdk::Color colour) {
@@ -87,7 +87,7 @@ protected:
 	virtual void drawPoints(std::map<double, double> &);
 	virtual void drawText();
 	virtual void drawAxis();
-	virtual void setSourceRGB(Cairo::RefPtr<Cairo::Context> cr, Gdk::Color & col);
+	virtual void setSourceRGB(Cairo::RefPtr<Cairo::Context> cr, const Gdk::Color & col);
 
 	static const DisplayColours STANDARD_COLOURS;
 	static const DisplayColours INACTIVE_COLOURS;
@@ -95,9 +95,11 @@ protected:
 	static const DisplayColours PRIMARY_INPUT_COLOURS;
 	static const DisplayColours PRIMARY_OUTPUT_COLOURS;
 
-private:
 	DisplayColours currentColourScheme;
-	bool activated;
+		bool activated;
+
+private:
+
 };
 
 }//NAMESPACE

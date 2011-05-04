@@ -17,8 +17,10 @@ const int StatisticsWindow::MAX_LINE_COUNT = 10000;
 
 StatisticsWindow::StatisticsWindow(const boost::shared_ptr<cryomesh::structures::Bundle> bun) :
 	bundle(bun) {
-	loadWindow("Data/statisticswindow.glade");
+	std::cout<<"StatisticsWindow::StatisticsWindow: "<<"DEBUG START"<<std::endl;
+loadWindow("Data/statisticswindow.glade");
 	this->setTitle("Cryoviewer Statistics");
+	std::cout<<"StatisticsWindow::StatisticsWindow: "<<"DEBUG END"<<std::endl;
 }
 
 StatisticsWindow::~StatisticsWindow() {

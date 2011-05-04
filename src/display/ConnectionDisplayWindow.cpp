@@ -15,6 +15,7 @@ namespace display {
 
 ConnectionDisplayWindow::ConnectionDisplayWindow(const boost::shared_ptr<cryomesh::components::Node> & nd) :
 	node(nd) {
+	std::cout<<"ConnectionDisplayWindow::ConnectionDisplayWindow: "<<"DEBUG START"<<std::endl;
 	loadWindow("Data/connectiondisplaywindow.glade");
 	// set title
 	{
@@ -25,6 +26,7 @@ ConnectionDisplayWindow::ConnectionDisplayWindow(const boost::shared_ptr<cryomes
 
 	mainWindow->show_all();
 	this->initialise();
+	std::cout<<"ConnectionDisplayWindow::ConnectionDisplayWindow: "<<"DEBUG END"<<std::endl;
 }
 
 ConnectionDisplayWindow::~ConnectionDisplayWindow() {
@@ -36,8 +38,16 @@ void ConnectionDisplayWindow::initialise() {
 	{
 		builder->get_widget("connectionDisplayInputsVBox", connectionDisplayInputsVBox);
 		builder->get_widget("connectionDisplayOutputsVBox", connectionDisplayOutputsVBox);
+		builder->get_widget("connectionDisplayInputsCheckBox", connectionDisplayInputsCheckBox);
+		builder->get_widget("connectionDisplayOutputsCheckBox", connectionDisplayOutputsCheckBox);
 
 	}
+
+	connectionDisplayInputsCheckBox->signal_clicked().connect(
+			sigc::mem_fun(*this, &ConnectionDisplayWindow::onConnectionDisplayInputsCheckBoxClicked));
+	connectionDisplayOutputsCheckBox->signal_clicked().connect(
+			sigc::mem_fun(*this, &ConnectionDisplayWindow::onConnectionDisplayOutputsCheckBoxClicked));
+
 	this->updateInputComponentDisplay();
 	this->updateOutputComponentDisplay();
 
@@ -242,6 +252,27 @@ boost::shared_ptr<ConnectionActivityPanel> ConnectionDisplayWindow::findComponen
 		}
 	}
 	return found_panel;
+}
+
+void ConnectionDisplayWindow::onConnectionDisplayInputsCheckBoxClicked() {
+	showAllConnections(inputPanelsMap, connectionDisplayInputsCheckBox->get_active());
+}
+void ConnectionDisplayWindow::onConnectionDisplayOutputsCheckBoxClicked() {
+	showAllConnections(outputPanelsMap, connectionDisplayOutputsCheckBox->get_active());
+}
+ void ConnectionDisplayWindow::showAllConnections(
+		std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> > & connection_panels, bool b) {
+	// forall in connection_panels
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> >::const_iterator it_connection_panels =
+				connection_panels.begin();
+		const std::map<boost::uuids::uuid, boost::shared_ptr<ConnectionActivityPanel> >::const_iterator
+				it_connection_panels_end = connection_panels.end();
+		while (it_connection_panels != it_connection_panels_end) {
+			it_connection_panels->second->setActivated(b);
+			++it_connection_panels;
+		}
+	}
 }
 
 } //NAMESPACE

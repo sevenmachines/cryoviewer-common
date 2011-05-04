@@ -86,7 +86,7 @@ void ActivityDrawingArea::setLabelText(const std::string & str) {
 	labelText = str;
 }
 
-void ActivityDrawingArea::setSourceRGB(Cairo::RefPtr<Cairo::Context> cr, Gdk::Color & col) {
+void ActivityDrawingArea::setSourceRGB(Cairo::RefPtr<Cairo::Context> cr, const Gdk::Color & col) {
 	double r = col.get_red_p();
 	double g = col.get_green_p();
 	double b = col.get_blue_p();

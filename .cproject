@@ -30,7 +30,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1672249025" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug.1037569887" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug">
 								<option id="gnu.cpp.compiler.so.debug.option.optimization.level.934237152" name="Optimization Level" superClass="gnu.cpp.compiler.so.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.so.debug.option.debugging.level.76379828" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.so.debug.option.debugging.level.76379828" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.default" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.other.other.1660222407" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-fPIC -std=c++0x -c -fmessage-length=0 `pkg-config --cflags gtk+-2.0 gtkglextmm-1.2 gtkmm-2.4 openscenegraph`" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1239034084" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/cryomesh/src}&quot;"/>

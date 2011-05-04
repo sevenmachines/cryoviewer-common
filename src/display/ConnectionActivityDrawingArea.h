@@ -20,17 +20,24 @@ namespace display {
 
 class ConnectionActivityDrawingArea: public ActivityDrawingArea {
 public:
-	ConnectionActivityDrawingArea(const boost::shared_ptr< cryomesh::components::Connection> & obj );
+	ConnectionActivityDrawingArea(const boost::shared_ptr<cryomesh::components::Connection> & obj);
 	virtual ~ConnectionActivityDrawingArea();
 	void setAsPrimaryInput();
 	void setAsPrimaryOutput();
-void update();
+	void update();
 protected:
-	virtual 	void drawText();
-	virtual void  drawAxis();
+	virtual void drawText();
+	virtual void drawAxis();
+	virtual void drawBarPoints();
+	virtual void drawBar(const double x, const double y,  const int overlay_count, const Gdk::Color & colour);
+
+	virtual bool on_expose_event(GdkEventExpose* event);
+
 private:
-	const boost::shared_ptr< cryomesh::components::Connection> connection;
+	const boost::shared_ptr<cryomesh::components::Connection> connection;
 	static const int MAX_FUTURE_TICKS;
+
+	std::map<double, std::vector<double> > multiPoints;
 };
 
 }

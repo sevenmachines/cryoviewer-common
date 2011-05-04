@@ -22,12 +22,13 @@ namespace display {
 /**
  * Super class of all display windows
  */
-class DisplayWindow : public cryomesh::common::Debuggable{
+class DisplayWindow: public cryomesh::common::Debuggable {
 public:
 	DisplayWindow() {
 		mainWindow = 0;
 	}
 	virtual void loadWindow(const std::string filename) {
+		std::cout << "DisplayWindow::loadWindow: " << "filename: "<<filename << std::endl;
 		try {
 			builder = Gtk::Builder::create();
 			builder->add_from_file(filename);
@@ -38,6 +39,8 @@ public:
 		} catch (const Gtk::BuilderError& ex) {
 			std::cerr << "DisplayWindow::loadWindow: BuilderError: " << ex.what() << std::endl;
 		}
+		std::cout << "DisplayWindow::loadWindow: " << "END " << filename << std::endl;
+
 	}
 	virtual ~DisplayWindow() {
 		std::cout << "DisplayWindow::~DisplayWindow: " << "" << std::endl;
@@ -59,7 +62,7 @@ public:
 	virtual void deactivate() {
 		activeState = false;
 		if (mainWindow != 0) {
-			std::cout << "DisplayWindow::activate: " << "hide" << std::endl;
+			std::cout << "DisplayWindow::deactivate: " << "hide" << std::endl;
 			mainWindow->hide();
 		}
 	}

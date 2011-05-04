@@ -27,11 +27,11 @@ namespace display {
 
 StructureWindow::StructureWindow(const boost::shared_ptr<cryomesh::structures::Bundle> bun) :
 	bundle(bun) {
-
+	std::cout<<"StructureWindow::StructureWindow: "<<"DEBUG START"<<std::endl;
 	displayText = osg::ref_ptr<osgText::Text>(new osgText::Text);
-	displayText->setText("GOD HELP US ALL!!");
+	displayText->setText("Cryoviewer Structure");
 	loadWindow("Data/structurewindow.glade");
-	this->setTitle("Cryoviewer Structure");
+	std::cout<<"StructureWindow::StructureWindow: "<<"DEBUG END"<<std::endl;
 }
 
 StructureWindow::~StructureWindow() {

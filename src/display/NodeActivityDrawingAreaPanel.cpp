@@ -34,7 +34,10 @@ bool NodeActivityDrawingAreaPanel::isActivated() const {
 
 void NodeActivityDrawingAreaPanel::setActivated(bool b) {
 	activated = b;
-	connectionDisplayWindow.reset();
+	if (b ==false){
+		showConnectionsCheckButton->set_active(b);
+		connectionDisplayWindow.reset();
+	}
 	//activityDrawingArea->showDrawingArea(this->isActivated());
 	activityDrawingArea->setActivated(b);
 	activityCheckButton->set_active(b);
@@ -43,7 +46,7 @@ void NodeActivityDrawingAreaPanel::setActivated(bool b) {
 void NodeActivityDrawingAreaPanel::update() {
 	if (this->isActivated() == true) {
 		activityDrawingArea->update();
-		if (connectionDisplayWindow!=0){
+		if (connectionDisplayWindow != 0) {
 			connectionDisplayWindow->update();
 		}
 		std::cout << "NodeActivityDrawingAreaPanel::update: " << *node << std::endl;
@@ -81,7 +84,6 @@ void NodeActivityDrawingAreaPanel::initialise() {
 		checkButtonsVBox->pack_start(*(showConnectionsCheckButton), false, false);
 	}
 
-
 	activityLabel = boost::shared_ptr<Gtk::Label>(new Gtk::Label(node->getUUIDString()));
 	if (node->isPrimaryInputAttachedNode() == true) {
 		this->setAsPrimaryInput();
@@ -107,13 +109,15 @@ void NodeActivityDrawingAreaPanel::onShowConnectionsCheckButtonClicked() {
 	if (showConnectionsCheckButton->get_active() == true) {
 		std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "TRUE" << std::endl;
 		// create a connections window
-		if (connectionDisplayWindow ==0){
-			connectionDisplayWindow = boost::shared_ptr< ConnectionDisplayWindow > (new ConnectionDisplayWindow(node));
+		if (connectionDisplayWindow == 0) {
+			connectionDisplayWindow = boost::shared_ptr<ConnectionDisplayWindow>(new ConnectionDisplayWindow(node));
 		}
 		connectionDisplayWindow->activate();
 
 	} else {
-		connectionDisplayWindow->deactivate();
+		if (connectionDisplayWindow != 0) {
+			connectionDisplayWindow->deactivate();
+		}
 	}
 }
 

@@ -16,6 +16,7 @@ namespace display {
 
 ActivitiesWindow::ActivitiesWindow(const boost::shared_ptr<cryomesh::structures::Cluster> clus) :
 	cluster(clus) {
+	std::cout<<"ActivitiesWindow::ActivitiesWindow: "<<"DEBUG START"<<std::endl;
 	loadWindow("Data/activitieswindow.glade");
 
 	// set title
@@ -27,6 +28,7 @@ ActivitiesWindow::ActivitiesWindow(const boost::shared_ptr<cryomesh::structures:
 
 	this->initialise();
 	mainWindow->show_all();
+	std::cout<<"ActivitiesWindow::ActivitiesWindow: "<<"DEBUG END"<<std::endl;
 }
 
 ActivitiesWindow::~ActivitiesWindow() {
@@ -66,7 +68,7 @@ void ActivitiesWindow::initialise() {
 }
 
 void ActivitiesWindow::updateNodeDisplay() {
-	//std::cout << "ActivitiesWindow::updateNodeDisplay: " << "drawingAreas before: " << drawingAreas.size() << std::endl;
+	std::cout << "ActivitiesWindow::updateNodeDisplay: " << "drawingAreas before: " << drawingAreas.size() << std::endl;
 	std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> > drawing_areas_copy(drawingAreas);
 
 	int count_added = 0;
@@ -123,7 +125,7 @@ void ActivitiesWindow::updateNodeDisplay() {
 			assert(false);
 		}
 	}
-
+std::cout<<"ActivitiesWindow::updateNodeDisplay: "<<"END"<<std::endl;
 }
 
 boost::shared_ptr<NodeActivityDrawingAreaPanel> ActivitiesWindow::addNode(

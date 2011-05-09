@@ -230,6 +230,7 @@ bool ConnectionActivityDrawingArea::on_expose_event(GdkEventExpose* event) {
 	Glib::RefPtr < Gdk::Window > window = get_window();
 	Cairo::RefPtr < Cairo::Context > cr = window->create_cairo_context();
 	// background fill
+	this->setColourScheme(DEFAULT_COLOUR_SCHEME);
 	this->setSourceRGB(cr, currentColourScheme.getBackgroundColour());
 	cr->paint();
 

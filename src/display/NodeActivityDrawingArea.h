@@ -23,17 +23,21 @@ namespace display {
 
 class NodeActivityDrawingArea: public ActivityDrawingArea {
 public:
-	NodeActivityDrawingArea(const boost::shared_ptr< cryomesh::components::Node> & nd );
+	NodeActivityDrawingArea(const boost::shared_ptr<cryomesh::components::Node> & nd);
 	virtual ~NodeActivityDrawingArea();
+
+	void update();
+protected:
+	virtual void drawText();
+	virtual void drawAxis();
 	void setAsPrimaryInput();
 	void setAsPrimaryOutput();
-void update();
-protected:
-	virtual 	void drawText();
-	virtual void  drawAxis();
+
 private:
-	const boost::shared_ptr< cryomesh::components::Node> node;
+	const boost::shared_ptr<cryomesh::components::Node> node;
 	static const int MAX_FUTURE_TICKS;
+	bool isPrimaryInput;
+	bool isPrimaryOutput;
 };
 
 }//NAMESPACE

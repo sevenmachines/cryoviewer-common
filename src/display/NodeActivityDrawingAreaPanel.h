@@ -19,40 +19,42 @@ namespace viewer {
 
 namespace display {
 
-class NodeActivityDrawingAreaPanel : public Gtk::HBox{
+class NodeActivityDrawingAreaPanel: public Gtk::HBox {
 public:
-	NodeActivityDrawingAreaPanel(const boost::shared_ptr< cryomesh::components::Node > & nd);
+	NodeActivityDrawingAreaPanel(const boost::shared_ptr<cryomesh::components::Node> & nd);
 	virtual ~NodeActivityDrawingAreaPanel();
-	bool isActivated()const;
+	bool isActivated() const;
 	void setActivated(bool b);
 	void update();
-	const boost::shared_ptr< cryomesh::components::Node > & getNode()const{
+	const boost::shared_ptr<cryomesh::components::Node> & getNode() const {
 		return node;
 	}
 
 protected:
-	boost::shared_ptr< NodeActivityDrawingArea > activityDrawingArea;
-	boost::shared_ptr< Gtk::CheckButton > activityCheckButton;
-	boost::shared_ptr< Gtk::CheckButton > showConnectionsCheckButton;
-	boost::shared_ptr< Gtk::VBox > checkButtonsVBox;
-	boost::shared_ptr< Gtk::Label > checkButtonsVBoxLabel;
+	boost::shared_ptr<NodeActivityDrawingArea> activityDrawingArea;
+	boost::shared_ptr<Gtk::CheckButton> activityCheckButton;
+	boost::shared_ptr<Gtk::CheckButton> showConnectionsCheckButton;
+	boost::shared_ptr<Gtk::VBox> checkButtonsVBox;
+	boost::shared_ptr<Gtk::Label> checkButtonsVBoxLabel;
 
-boost::shared_ptr< Gtk::Label > activityLabel;
+	boost::shared_ptr<Gtk::Label> activityLabel;
 
 	void initialise();
 	void setAsPrimaryInput();
 		void setAsPrimaryOutput();
-	void onActivityCheckButtonClicked() ;
+	void onActivityCheckButtonClicked();
 	void onShowConnectionsCheckButtonClicked();
 
 	static int ids;
 	static int getIds();
 
 private:
-	const boost::shared_ptr< cryomesh::components::Node > node;
-	boost::shared_ptr< ConnectionDisplayWindow > connectionDisplayWindow;
+	const boost::shared_ptr<cryomesh::components::Node> node;
+	boost::shared_ptr<ConnectionDisplayWindow> connectionDisplayWindow;
 	bool activated;
 	int id;
+	bool isPrimaryInput;
+	bool isPrimaryOutput;
 };
 
 }

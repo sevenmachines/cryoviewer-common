@@ -92,11 +92,9 @@ void ConnectionActivityPanel::initialise() {
 }
 
 void ConnectionActivityPanel::setAsPrimaryInput() {
-	activityDrawingArea->setAsPrimaryInput();
 }
 
 void ConnectionActivityPanel::setAsPrimaryOutput() {
-	activityDrawingArea->setAsPrimaryOutput();
 }
 
 void ConnectionActivityPanel::onActivityCheckButtonClicked() {

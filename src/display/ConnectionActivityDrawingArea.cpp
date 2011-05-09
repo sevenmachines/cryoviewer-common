@@ -21,7 +21,12 @@ namespace display {
 const int ConnectionActivityDrawingArea::MAX_FUTURE_TICKS = 100;
 ConnectionActivityDrawingArea::ConnectionActivityDrawingArea(
 		const boost::shared_ptr<cryomesh::components::Connection> & obj) :
-	connection(obj) {
+	connection(obj), isPrimaryInput(false), isPrimaryOutput(false) {
+	if (connection->isPrimaryInputConnection() == true) {
+		this->setAsPrimaryInput();
+	} else if (connection->isPrimaryOutputConnection() == true) {
+		this->setAsPrimaryOutput();
+	}
 }
 
 ConnectionActivityDrawingArea::~ConnectionActivityDrawingArea() {
@@ -30,11 +35,13 @@ ConnectionActivityDrawingArea::~ConnectionActivityDrawingArea() {
 
 void ConnectionActivityDrawingArea::setAsPrimaryInput() {
 	std::cout << "ConnectionActivityDrawingArea::setAsPrimaryInput: " << "" << std::endl;
-	this->setColourScheme(ActivityDrawingArea::PRIMARY_INPUT_COLOUR_SCHEME);
+	this->isPrimaryInput = true;
+	this->setDefaultColourScheme(ActivityDrawingArea::PRIMARY_INPUT_COLOUR_SCHEME);
 }
 void ConnectionActivityDrawingArea::setAsPrimaryOutput() {
+	this->isPrimaryOutput = true;
 	std::cout << "ConnectionActivityDrawingArea::setAsPrimaryOutput: " << "" << std::endl;
-	this->setColourScheme(ActivityDrawingArea::PRIMARY_OUTPUT_COLOUR_SCHEME);
+	this->setDefaultColourScheme(ActivityDrawingArea::PRIMARY_OUTPUT_COLOUR_SCHEME);
 
 }
 
@@ -57,7 +64,8 @@ void ConnectionActivityDrawingArea::update() {
 				const Impulse & imp = *(it_all_impulses->second);
 				double imp_x = imp.getActivityTimer()->getDelay();
 				double imp_y = imp.getMaximum();
-				std::cout<<"ConnectionActivityDrawingArea::update: "<<"Impulse: "<<imp_x<<", "<<imp_y<<std::endl;
+				std::cout << "ConnectionActivityDrawingArea::update: " << "Impulse: " << imp_x << ", " << imp_y
+						<< std::endl;
 				std::map<double, std::vector<double> >::iterator found_point = multiPoints.find(imp_x);
 				if (found_point != multiPoints.end()) {
 					found_point->second.push_back(imp_y);
@@ -92,7 +100,14 @@ void ConnectionActivityDrawingArea::drawText() {
 	{
 		cr->move_to(width / 5, 20);
 		std::stringstream ss;
-		ss << "ID: " << connection->getUUIDString();
+		ss << "ID";
+		if (this->isPrimaryInput == true) {
+			ss << " (PIN)";
+		}
+		if (this->isPrimaryOutput == true) {
+			ss << " (POUT)";
+		}
+		ss << ": " << connection->getUUIDString();
 		cr->show_text(ss.str());
 	}
 
@@ -130,13 +145,13 @@ void ConnectionActivityDrawingArea::drawAxis() {
 	{
 		std::stringstream ss_temp;
 		ss_temp << max_delay / 2;
-		cr->move_to(-40+width / 2, 25 + height / 2);
+		cr->move_to(-40 + width / 2, 25 + height / 2);
 		cr->show_text(ss_temp.str());
 	}
 	{
 		std::stringstream ss_temp;
 		ss_temp << max_delay;
-		cr->move_to(width-40, 25 + height / 2);
+		cr->move_to(width - 40, 25 + height / 2);
 		cr->show_text(ss_temp.str());
 	}
 

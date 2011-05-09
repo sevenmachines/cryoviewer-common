@@ -28,7 +28,9 @@ public:
 	virtual ~ActivitiesWindow();
 
 protected:
-	Gtk::VBox * activitiesVBox;
+	Gtk::VBox * activitiesPrimaryInputsDrawingAreasVBox;
+	Gtk::VBox * activitiesPrimaryOutputsDrawingAreasVBox;
+	Gtk::VBox * activitiesDrawingAreasVBox;
 	Gtk::HBox * activitiesWindowHBox;
 	Gtk::CheckButton * activitiesWindowCheckButtonSelectAll;
 	Gtk::Label * activitiesWindowLabelSummary;
@@ -38,9 +40,10 @@ protected:
 
 	virtual void updateNodeDisplay();
 
-	virtual boost::shared_ptr<NodeActivityDrawingAreaPanel> addNode(const boost::shared_ptr< cryomesh::components::Node> & node);
+	virtual boost::shared_ptr<NodeActivityDrawingAreaPanel> addNode(
+			const boost::shared_ptr<cryomesh::components::Node> & node);
 	virtual void removeNode(const boost::uuids::uuid & uuid);
-	virtual void removeNode(const boost::shared_ptr< cryomesh::components::Node> & node);
+	virtual void removeNode(const boost::shared_ptr<cryomesh::components::Node> & node);
 	boost::shared_ptr<NodeActivityDrawingAreaPanel> findNodePanelByNode(
 			const boost::shared_ptr<cryomesh::components::Node> & node);
 
@@ -49,6 +52,8 @@ protected:
 private:
 	const boost::shared_ptr<cryomesh::structures::Cluster> cluster;
 	std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> > drawingAreas;
+	std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> > primaryInputDrawingAreas;
+	std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> > primaryOutputDrawingAreas;
 
 	void selectAllNodes(bool b);
 

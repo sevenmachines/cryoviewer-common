@@ -5,6 +5,8 @@
  *      Author: "SevenMachines <SevenMachines@yahoo.co.uk>"
  */
 
+#define ACTIVITIESWINDOW_DEBUG
+
 #include "ActivitiesWindow.h"
 #include <sstream>
 
@@ -16,7 +18,7 @@ namespace display {
 
 ActivitiesWindow::ActivitiesWindow(const boost::shared_ptr<cryomesh::structures::Cluster> clus) :
 	cluster(clus) {
-	std::cout<<"ActivitiesWindow::ActivitiesWindow: "<<"DEBUG START"<<std::endl;
+	std::cout << "ActivitiesWindow::ActivitiesWindow: " << "DEBUG START" << std::endl;
 	loadWindow("Data/activitieswindow.glade");
 
 	// set title
@@ -28,7 +30,7 @@ ActivitiesWindow::ActivitiesWindow(const boost::shared_ptr<cryomesh::structures:
 
 	this->initialise();
 	mainWindow->show_all();
-	std::cout<<"ActivitiesWindow::ActivitiesWindow: "<<"DEBUG END"<<std::endl;
+	std::cout << "ActivitiesWindow::ActivitiesWindow: " << "DEBUG END" << std::endl;
 }
 
 ActivitiesWindow::~ActivitiesWindow() {
@@ -49,16 +51,42 @@ void ActivitiesWindow::updateData() {
 		}
 	}
 
+	// forall in pin drawingAreas
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_drawingAreas =
+				primaryInputDrawingAreas.begin();
+		const std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::const_iterator
+				it_drawingAreas_end = primaryInputDrawingAreas.end();
+		while (it_drawingAreas != it_drawingAreas_end) {
+			it_drawingAreas->second->update();
+			++it_drawingAreas;
+		}
+	}
+
+	// forall in pout drawingAreas
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_drawingAreas =
+				primaryOutputDrawingAreas.begin();
+		const std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::const_iterator
+				it_drawingAreas_end = primaryOutputDrawingAreas.end();
+		while (it_drawingAreas != it_drawingAreas_end) {
+			it_drawingAreas->second->update();
+			++it_drawingAreas;
+		}
+	}
+
 	std::stringstream ss;
 	ss << "Cycle: " << cryomesh::common::TimeKeeper::getTimeKeeper().getCycle();
 	activitiesWindowLabelSummary->set_text(ss.str());
 }
 
 void ActivitiesWindow::initialise() {
-	builder->get_widget("activitiesVBox", activitiesVBox);
 	builder->get_widget("activitiesWindowHBox", activitiesWindowHBox);
 	builder->get_widget("activitiesWindowCheckButtonSelectAll", activitiesWindowCheckButtonSelectAll);
 	builder->get_widget("activitiesWindowLabelSummary", activitiesWindowLabelSummary);
+	builder->get_widget("activitiesPrimaryInputsDrawingAreasVBox", activitiesPrimaryInputsDrawingAreasVBox);
+	builder->get_widget("activitiesPrimaryOutputsDrawingAreasVBox", activitiesPrimaryOutputsDrawingAreasVBox);
+	builder->get_widget("activitiesDrawingAreasVBox", activitiesDrawingAreasVBox);
 
 	activitiesWindowCheckButtonSelectAll->signal_clicked().connect(
 			sigc::mem_fun(*this, &ActivitiesWindow::onActivitiesWindowCheckButtonSelectAll));
@@ -68,7 +96,7 @@ void ActivitiesWindow::initialise() {
 }
 
 void ActivitiesWindow::updateNodeDisplay() {
-	std::cout << "ActivitiesWindow::updateNodeDisplay: " << "drawingAreas before: " << drawingAreas.size() << std::endl;
+	//std::cout << "ActivitiesWindow::updateNodeDisplay: " << "drawingAreas before: " << drawingAreas.size() << std::endl;
 	std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> > drawing_areas_copy(drawingAreas);
 
 	int count_added = 0;
@@ -125,25 +153,101 @@ void ActivitiesWindow::updateNodeDisplay() {
 			assert(false);
 		}
 	}
-std::cout<<"ActivitiesWindow::updateNodeDisplay: "<<"END"<<std::endl;
+	std::cout << "ActivitiesWindow::updateNodeDisplay: " << "END" << std::endl;
 }
 
 boost::shared_ptr<NodeActivityDrawingAreaPanel> ActivitiesWindow::addNode(
 		const boost::shared_ptr<cryomesh::components::Node> & node) {
 	boost::shared_ptr<NodeActivityDrawingAreaPanel> panel(new NodeActivityDrawingAreaPanel(node));
-	drawingAreas[node->getUUID()] = panel;
-	activitiesVBox->pack_start(*panel);
+	bool is_pin = node->isPrimaryInputAttachedNode();
+	bool is_pout = node->isPrimaryOutputAttachedNode();
+
+	if (is_pin == true) {
+		primaryInputDrawingAreas[node->getUUID()] = panel;
+		activitiesPrimaryInputsDrawingAreasVBox->pack_start(*panel);
+	}
+	if (is_pout == true) {
+		primaryOutputDrawingAreas[node->getUUID()] = panel;
+		activitiesPrimaryOutputsDrawingAreasVBox->pack_start(*panel);
+	}
+	if (is_pin != true && is_pout != true) {
+		drawingAreas[node->getUUID()] = panel;
+		activitiesDrawingAreasVBox->pack_start(*panel);
+	}
 	return panel;
 }
 
 void ActivitiesWindow::removeNode(const boost::uuids::uuid & uuid) {
-	std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_found =
-			drawingAreas.find(uuid);
-	if (it_found != drawingAreas.end()) {
-		boost::shared_ptr<NodeActivityDrawingAreaPanel> found = it_found->second;
-		drawingAreas.erase(it_found);
-		activitiesVBox ->remove(*found);
+#ifdef ACTIVITIESWINDOW_DEBUG
+
+	int pre_da_sz = drawingAreas.size();
+	int pre_pin_da_sz = primaryInputDrawingAreas.size();
+	int pre_pount_da_sz = primaryOutputDrawingAreas.size();
+#endif
+	bool id_found_dbg = false;
+	bool is_pin_dbg = false;
+	bool is_pout_dbg = false;
+
+	// check remove from output primaries
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_pout_found =
+				primaryOutputDrawingAreas.find(uuid);
+		if (it_pout_found != primaryOutputDrawingAreas.end()) {
+			boost::shared_ptr<NodeActivityDrawingAreaPanel> pout_found = it_pout_found->second;
+			primaryOutputDrawingAreas.erase(it_pout_found);
+			is_pout_dbg = true;
+			activitiesPrimaryOutputsDrawingAreasVBox->remove(*pout_found);
+		}
 	}
+
+	// check remove from input primaries
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_pin_found =
+				primaryInputDrawingAreas.find(uuid);
+		if (it_pin_found != primaryInputDrawingAreas.end()) {
+			boost::shared_ptr<NodeActivityDrawingAreaPanel> pin_found = it_pin_found->second;
+			primaryInputDrawingAreas.erase(it_pin_found);
+			is_pin_dbg = true;
+			activitiesPrimaryInputsDrawingAreasVBox->remove(*pin_found);
+		}
+	}
+
+	if (is_pin_dbg != true && is_pout_dbg != true) {
+		// remove from general
+		{
+			std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_found =
+					drawingAreas.find(uuid);
+			if (it_found != drawingAreas.end()) {
+				boost::shared_ptr<NodeActivityDrawingAreaPanel> found = it_found->second;
+				drawingAreas.erase(it_found);
+				id_found_dbg = true;
+				activitiesDrawingAreasVBox->remove(*found);
+			}
+		}
+	}
+
+#ifdef ACTIVITIESWINDOW_DEBUG
+	int post_da_sz = drawingAreas.size();
+	int post_pin_da_sz = primaryInputDrawingAreas.size();
+	int post_pount_da_sz = primaryOutputDrawingAreas.size();
+
+	if (id_found_dbg == true) {
+		assert(post_da_sz == pre_da_sz - 1);
+	} else {
+		assert(post_da_sz == pre_da_sz);
+	}
+
+	if (is_pin_dbg == true) {
+		assert(post_pin_da_sz == pre_pin_da_sz - 1);
+	} else {
+		assert(post_pin_da_sz == pre_pin_da_sz );
+	}
+	if (is_pout_dbg == true) {
+		assert(post_pount_da_sz == pre_pount_da_sz - 1);
+	} else {
+		assert(post_pount_da_sz == pre_pount_da_sz );
+	}
+#endif
 }
 
 void ActivitiesWindow::removeNode(const boost::shared_ptr<cryomesh::components::Node> &node) {
@@ -188,6 +292,31 @@ void ActivitiesWindow::selectAllNodes(bool b) {
 			++it_drawingAreas;
 		}
 	}
+
+	// forall in pin drawingAreas
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_drawingAreas =
+				primaryInputDrawingAreas.begin();
+		const std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::const_iterator
+				it_drawingAreas_end = primaryInputDrawingAreas.end();
+		while (it_drawingAreas != it_drawingAreas_end) {
+			it_drawingAreas->second->setActivated(b);
+			++it_drawingAreas;
+		}
+	}
+
+	// forall in pout drawingAreas
+	{
+		std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::iterator it_drawingAreas =
+				primaryOutputDrawingAreas.begin();
+		const std::map<boost::uuids::uuid, boost::shared_ptr<NodeActivityDrawingAreaPanel> >::const_iterator
+				it_drawingAreas_end = primaryOutputDrawingAreas.end();
+		while (it_drawingAreas != it_drawingAreas_end) {
+			it_drawingAreas->second->setActivated(b);
+			++it_drawingAreas;
+		}
+	}
+
 }
 }//NAMESPACE
 }//NAMESPACE

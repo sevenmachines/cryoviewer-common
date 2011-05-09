@@ -22,15 +22,14 @@ class ConnectionActivityDrawingArea: public ActivityDrawingArea {
 public:
 	ConnectionActivityDrawingArea(const boost::shared_ptr<cryomesh::components::Connection> & obj);
 	virtual ~ConnectionActivityDrawingArea();
-	void setAsPrimaryInput();
-	void setAsPrimaryOutput();
 	void update();
 protected:
 	virtual void drawText();
 	virtual void drawAxis();
 	virtual void drawBarPoints();
 	virtual void drawBar(const double x, const double y,  const int overlay_count, const Gdk::Color & colour);
-
+	virtual void setAsPrimaryInput();
+	virtual void setAsPrimaryOutput();
 	virtual bool on_expose_event(GdkEventExpose* event);
 
 private:
@@ -38,6 +37,8 @@ private:
 	static const int MAX_FUTURE_TICKS;
 
 	std::map<double, std::vector<double> > multiPoints;
+	bool isPrimaryInput;
+	bool isPrimaryOutput;
 };
 
 }

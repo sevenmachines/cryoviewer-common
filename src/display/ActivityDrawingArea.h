@@ -25,6 +25,7 @@ namespace display {
 class ActivityDrawingArea: public Gtk::DrawingArea {
 public:
 	enum DisplayColourScheme {
+		DEFAULT_COLOUR_SCHEME,
 		STANDARD_COLOUR_SCHEME,
 		INACTIVE_COLOUR_SCHEME,
 		FIRED_COLOUR_SCHEME,
@@ -66,6 +67,7 @@ public:
 	// enabler methods
 	virtual void showDrawingArea(bool b);
 	void setColourScheme(DisplayColourScheme colour_scheme);
+	void setDefaultColourScheme(DisplayColourScheme colour_scheme);
 	bool isActivated() const;
 	void setActivated(bool b);
 	void setLabelText(const std::string & str);
@@ -90,13 +92,14 @@ protected:
 	virtual void setSourceRGB(Cairo::RefPtr<Cairo::Context> cr, const Gdk::Color & col);
 
 	static const DisplayColours STANDARD_COLOURS;
-	static const DisplayColours INACTIVE_COLOURS;
+static const DisplayColours INACTIVE_COLOURS;
 	static const DisplayColours FIRED_COLOURS;
 	static const DisplayColours PRIMARY_INPUT_COLOURS;
 	static const DisplayColours PRIMARY_OUTPUT_COLOURS;
 
 	DisplayColours currentColourScheme;
-		bool activated;
+	DisplayColours defaultColourScheme;
+	bool activated;
 
 private:
 

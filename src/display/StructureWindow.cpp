@@ -38,7 +38,6 @@ StructureWindow::~StructureWindow() {
 }
 
 void StructureWindow::updateData() {
-	this->updateClusterChooser();
 	if (structureDrawingArea != 0) {
 		structureDrawingArea->update();
 	}

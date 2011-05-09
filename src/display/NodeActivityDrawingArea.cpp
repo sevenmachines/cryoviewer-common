@@ -19,7 +19,13 @@ namespace display {
 
 const int NodeActivityDrawingArea::MAX_FUTURE_TICKS = 100;
 NodeActivityDrawingArea::NodeActivityDrawingArea(const boost::shared_ptr<cryomesh::components::Node> & nd) :
-	node(nd) {
+	node(nd), isPrimaryInput(false), isPrimaryOutput(false) {
+	if (node->isPrimaryInputAttachedNode() == true) {
+		this->setAsPrimaryInput();
+	}
+	if (node->isPrimaryOutputAttachedNode() == true) {
+		this->setAsPrimaryOutput();
+	}
 }
 
 NodeActivityDrawingArea::~NodeActivityDrawingArea() {
@@ -28,11 +34,13 @@ NodeActivityDrawingArea::~NodeActivityDrawingArea() {
 
 void NodeActivityDrawingArea::setAsPrimaryInput() {
 	std::cout << "NodeActivityDrawingArea::setAsPrimaryInput: " << "" << std::endl;
-	this->setColourScheme(ActivityDrawingArea::PRIMARY_INPUT_COLOUR_SCHEME);
+	this->isPrimaryInput = true;
+	this->setDefaultColourScheme(ActivityDrawingArea::PRIMARY_INPUT_COLOUR_SCHEME);
 }
 void NodeActivityDrawingArea::setAsPrimaryOutput() {
 	std::cout << "NodeActivityDrawingArea::setAsPrimaryOutput: " << "" << std::endl;
-	this->setColourScheme(ActivityDrawingArea::PRIMARY_OUTPUT_COLOUR_SCHEME);
+	isPrimaryOutput = true;
+	this->setDefaultColourScheme(ActivityDrawingArea::PRIMARY_OUTPUT_COLOUR_SCHEME);
 
 }
 
@@ -50,15 +58,16 @@ void NodeActivityDrawingArea::update() {
 			//<< " activity: " << points[x] << std::endl;
 			++x;
 		}
+#ifdef NODEACTIVITYDRAWINGAREA_DEBUG
 		node->setDebug(true);
 		std::cout << "NodeActivityDrawingArea::update: " << "Node: " << *node << std::endl;
 		node->setDebug(false);
-
+#endif
 		//set colour
 		if (node->isTriggered() == true) {
 			this->setColourScheme(FIRED_COLOUR_SCHEME);
 		} else {
-			this->setColourScheme(STANDARD_COLOUR_SCHEME);
+			this->setColourScheme(DEFAULT_COLOUR_SCHEME);
 		}
 
 	}
@@ -82,7 +91,14 @@ void NodeActivityDrawingArea::drawText() {
 	{
 		cr->move_to(width / 5, 20);
 		std::stringstream ss;
-		ss << "ID: " << node->getUUIDString();
+		ss << "ID";
+		if (this->isPrimaryInput == true) {
+			ss << " (PIN)";
+		}
+		if (this->isPrimaryOutput == true) {
+			ss << " (POUT)";
+		}
+		ss<< ": " <<node->getUUIDString();
 		cr->show_text(ss.str());
 	}
 
@@ -94,8 +110,8 @@ void NodeActivityDrawingArea::drawText() {
 		int outputs_count = node->getConnector().getOutputs().size();
 
 		ss << "Impulses: " << impulse_count;
-		ss<< " Inputs: "<< inputs_count;
-		ss<< " Outputs: "<<outputs_count;
+		ss << " Inputs: " << inputs_count;
+		ss << " Outputs: " << outputs_count;
 		cr->show_text(ss.str());
 	}
 	cr->restore();

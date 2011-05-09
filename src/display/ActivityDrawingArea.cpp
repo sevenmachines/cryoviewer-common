@@ -18,19 +18,20 @@ namespace display {
 
 const int ActivityDrawingArea::ACTIVITY_HEIGHT = 100;
 
- const ActivityDrawingArea::DisplayColours ActivityDrawingArea::STANDARD_COLOURS = ActivityDrawingArea::DisplayColours(
+const ActivityDrawingArea::DisplayColours ActivityDrawingArea::STANDARD_COLOURS = ActivityDrawingArea::DisplayColours(
 		Gdk::Color("red"), Gdk::Color("black"), Gdk::Color("grey"));
- const ActivityDrawingArea::DisplayColours ActivityDrawingArea::INACTIVE_COLOURS = ActivityDrawingArea::DisplayColours(
+const ActivityDrawingArea::DisplayColours ActivityDrawingArea::INACTIVE_COLOURS = ActivityDrawingArea::DisplayColours(
 		Gdk::Color("red"), Gdk::Color("grey20"), Gdk::Color("grey"));
- const ActivityDrawingArea::DisplayColours ActivityDrawingArea::FIRED_COLOURS = ActivityDrawingArea::DisplayColours(
-		Gdk::Color("green"), Gdk::Color("grey20"), Gdk::Color("grey"));
- const ActivityDrawingArea::DisplayColours ActivityDrawingArea::PRIMARY_INPUT_COLOURS = ActivityDrawingArea::DisplayColours(
-		Gdk::Color("red"), Gdk::Color("DarkTurquoise"), Gdk::Color("grey"));
- const ActivityDrawingArea::DisplayColours ActivityDrawingArea::PRIMARY_OUTPUT_COLOURS = ActivityDrawingArea::DisplayColours(
-		Gdk::Color("red"), Gdk::Color("gold"), Gdk::Color("black"));
+const ActivityDrawingArea::DisplayColours ActivityDrawingArea::FIRED_COLOURS = ActivityDrawingArea::DisplayColours(
+		Gdk::Color("green"), Gdk::Color("SpringGreen"), Gdk::Color("grey"));
+const ActivityDrawingArea::DisplayColours ActivityDrawingArea::PRIMARY_INPUT_COLOURS =
+		ActivityDrawingArea::DisplayColours(Gdk::Color("LightSkyBlue"), Gdk::Color("MediumBlue"), Gdk::Color("grey"));
+const ActivityDrawingArea::DisplayColours ActivityDrawingArea::PRIMARY_OUTPUT_COLOURS =
+		ActivityDrawingArea::DisplayColours(Gdk::Color("Magenta"), Gdk::Color("DarkOrchid"), Gdk::Color("grey"));
 
 ActivityDrawingArea::ActivityDrawingArea() :
-	currentColourScheme(ActivityDrawingArea::INACTIVE_COLOURS) {
+	currentColourScheme(ActivityDrawingArea::INACTIVE_COLOURS),
+			defaultColourScheme(ActivityDrawingArea::STANDARD_COLOURS) {
 
 	//std::cout << "ActivityDrawingArea::ActivityDrawingArea()" << std::endl;
 	this->signal_expose_event().connect(sigc::mem_fun(*this, &ActivityDrawingArea::on_expose_event));
@@ -41,25 +42,55 @@ ActivityDrawingArea::ActivityDrawingArea() :
 ActivityDrawingArea::~ActivityDrawingArea() {
 }
 
+void ActivityDrawingArea::setDefaultColourScheme(DisplayColourScheme colour_scheme) {
+	switch (colour_scheme) {
+	case (INACTIVE_COLOUR_SCHEME): {
+		defaultColourScheme = INACTIVE_COLOURS;
+		break;
+	}
+	case (PRIMARY_INPUT_COLOUR_SCHEME): {
+		defaultColourScheme = PRIMARY_INPUT_COLOURS;
+		break;
+	}
+	case (PRIMARY_OUTPUT_COLOUR_SCHEME): {
+		defaultColourScheme = PRIMARY_OUTPUT_COLOURS;
+		break;
+	}
+	default: {
+		defaultColourScheme = STANDARD_COLOURS;
+		break;
+	}
+	}
+}
 void ActivityDrawingArea::setColourScheme(DisplayColourScheme colour_scheme) {
 	switch (colour_scheme) {
+	case (DEFAULT_COLOUR_SCHEME): {
+		currentColourScheme = defaultColourScheme;
+		break;
+	}
 	case (STANDARD_COLOUR_SCHEME): {
 		currentColourScheme = STANDARD_COLOURS;
+		break;
 	}
 	case (INACTIVE_COLOUR_SCHEME): {
 		currentColourScheme = INACTIVE_COLOURS;
+		break;
 	}
 	case (FIRED_COLOUR_SCHEME): {
-		currentColourScheme = FIRED_COLOURS;
+		currentColourScheme.setBackgroundColour(FIRED_COLOURS.getBackgroundColour());
+		break;
 	}
 	case (PRIMARY_INPUT_COLOUR_SCHEME): {
 		currentColourScheme = PRIMARY_INPUT_COLOURS;
+		break;
 	}
 	case (PRIMARY_OUTPUT_COLOUR_SCHEME): {
 		currentColourScheme = PRIMARY_OUTPUT_COLOURS;
+		break;
 	}
 	default: {
 		currentColourScheme = STANDARD_COLOURS;
+		break;
 	}
 
 	}
@@ -75,8 +106,8 @@ void ActivityDrawingArea::setActivated(bool b) {
 		setColourScheme(ActivityDrawingArea::STANDARD_COLOUR_SCHEME);
 		if (this->get_window() != 0) {
 			this->invalidateWindow();
+			this->update();
 		}
-		//this->update();
 	} else {
 		setColourScheme(INACTIVE_COLOUR_SCHEME);
 	}

@@ -22,7 +22,7 @@ int NodeActivityDrawingAreaPanel::getIds() {
 }
 
 NodeActivityDrawingAreaPanel::NodeActivityDrawingAreaPanel(const boost::shared_ptr<cryomesh::components::Node> & nd) :
-	node(nd), activated(false), id(NodeActivityDrawingAreaPanel::getIds()) {
+	node(nd), activated(false), id(NodeActivityDrawingAreaPanel::getIds()), isPrimaryInput(false), isPrimaryOutput(false) {
 	this->initialise();
 }
 
@@ -34,7 +34,7 @@ bool NodeActivityDrawingAreaPanel::isActivated() const {
 
 void NodeActivityDrawingAreaPanel::setActivated(bool b) {
 	activated = b;
-	if (b ==false){
+	if (b == false) {
 		showConnectionsCheckButton->set_active(b);
 		connectionDisplayWindow.reset();
 	}
@@ -49,7 +49,7 @@ void NodeActivityDrawingAreaPanel::update() {
 		if (connectionDisplayWindow != 0) {
 			connectionDisplayWindow->update();
 		}
-		std::cout << "NodeActivityDrawingAreaPanel::update: " << *node << std::endl;
+		//std::cout << "NodeActivityDrawingAreaPanel::update: " << *node << std::endl;
 	}
 }
 
@@ -98,16 +98,17 @@ void NodeActivityDrawingAreaPanel::initialise() {
 }
 
 void NodeActivityDrawingAreaPanel::setAsPrimaryInput() {
-	activityDrawingArea->setAsPrimaryInput();
+	std::cout << "NodeActivityDrawingAreaPanel::setAsPrimaryInput: " << "" << std::endl;
+	isPrimaryInput = true;
 }
 
 void NodeActivityDrawingAreaPanel::setAsPrimaryOutput() {
-	activityDrawingArea->setAsPrimaryOutput();
+	std::cout << "NodeActivityDrawingAreaPanel::setAsPrimaryOutput: " << "" << std::endl;
+	isPrimaryInput = false;
 }
 
 void NodeActivityDrawingAreaPanel::onShowConnectionsCheckButtonClicked() {
 	if (showConnectionsCheckButton->get_active() == true) {
-		std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "TRUE" << std::endl;
 		// create a connections window
 		if (connectionDisplayWindow == 0) {
 			connectionDisplayWindow = boost::shared_ptr<ConnectionDisplayWindow>(new ConnectionDisplayWindow(node));

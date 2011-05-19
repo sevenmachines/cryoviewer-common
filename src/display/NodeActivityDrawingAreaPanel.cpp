@@ -126,12 +126,12 @@ void NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked() {
 	//std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "" << std::endl;
 	if (activityCheckButton->get_active() == true) {
 		//std::cout << "NodeActivityDrawingAreaPanel::onActivityCheckButtonClicked: " << "TRUE" << std::endl;
-		node->setDebug(true);
+		node->enableDebug(true);
 		this->setActivated(true);
 		activityDrawingArea->setActivated(true);
 		//activityDrawingArea->invalidateWindow();
 	} else {
-		node->setDebug(false);
+		node->enableDebug(false);
 		this->setActivated(false);
 		activityDrawingArea->setActivated(false);
 		//activityDrawingArea->invalidateWindow();

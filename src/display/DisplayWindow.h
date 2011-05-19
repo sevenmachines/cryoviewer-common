@@ -69,6 +69,9 @@ public:
 	bool isActive() {
 		return activeState;
 	}
+	virtual void enableDebug(bool b){
+		this->setDebug(b);
+	}
 
 protected:
 	Gtk::Window * mainWindow;
